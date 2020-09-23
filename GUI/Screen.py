@@ -6,19 +6,23 @@ GUI logic
 @author: Carlos Portela
 '''
 import tkinter
+from PIL import Image, ImageTk
 from Logic.Board import Board
 from Logic.Snake import Snake
 
 windowWidth = 1000
 windowHeight = 800
 
+snakeCellW = 250
+snakeCellH = 250
 
-def createBoardUI(windowWidth,windowHeight):
+window = tkinter.Tk()
+
+def createBoardUI():
 
     verticalMargin = 50
     board = Board(windowWidth,windowHeight)
     
-    window = tkinter.Tk()
     #defines window size
     window.geometry(board.getGeometry())
     window.title(board.title)
@@ -27,21 +31,37 @@ def createBoardUI(windowWidth,windowHeight):
     window.resizable(0,0)
     
     windowFrame = tkinter.Frame(window, width = windowWidth, height = windowHeight-verticalMargin, bg = "brown")
-    windowFrame.pack()
-    
     # pack is used to show the object in the window
+    windowFrame.pack()
+        
+    return windowFrame
+
+
+def renderSnake(frame):
+    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH)
+    s.place(x=windowWidth/2, y=windowHeight/2)
+    
+    img = Image.open("../Resources/snake2.gif")
+    print(img.size)
+    image = ImageTk.PhotoImage(img)
+    s.image = image
+    s.create_image(windowWidth/2,windowHeight/3, image=image)
+
+    #s.create_rectangle(0, 0, snakeCellW, snakeCellH, fill="green")
+
+    snake = Snake(windowWidth/2,windowHeight/2)
+    
+    
+
+# Just to test
+if __name__ == '__main__':
+    
+    frame = createBoardUI()
+    
+    renderSnake(frame)
+    
     window.mainloop()
-    
-    return window
 
-
-def renderSnake(window):
-    pass
-    tkinter.Canvas(window, width=200, height=100)
-
-    #snake = Snake(Game.windowWidth/2,Game.windowHeight/2)
-    
-    
     
     
     
