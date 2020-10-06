@@ -11,6 +11,8 @@ from PIL import Image, ImageTk
 from Logic.Board import Board
 
 
+window = tkinter.Tk()
+
 windowWidth = 1000
 windowHeight = 800
 
@@ -21,7 +23,7 @@ frameHeight = windowHeight-verticalMargin
 snakeCellW = 20
 snakeCellH = 20
 
-window = tkinter.Tk()
+imgRef = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))  
 
 def createBoardUI():
 
@@ -43,7 +45,7 @@ def createBoardUI():
 
 
 def renderSnakeHead(frame,posX,posY):
-    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue")
+    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
     s.place(x=posX,y=posY)
     
     # creates snake eyes
@@ -52,7 +54,7 @@ def renderSnakeHead(frame,posX,posY):
 
 
 def renderSnakeCell(frame,posX,posY):
-    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue")
+    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
     s.place(x=posX,y=posY)
     s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
     
@@ -68,12 +70,6 @@ def renderSnake(frame,snake):
         snakePosX -= snakeCellW
         renderSnakeCell(frame,snakePosX,snakePosY)
 
-    '''img = Image.open("../Resources/snake2.gif")
-    print(img.size)
-    image = ImageTk.PhotoImage(img)
-    s.image = image
-    s.create_image(windowWidth/2,windowHeight/3, image=image)'''
-        
 
 # returns tuple for random position to place food
 def randomPosition():
@@ -89,8 +85,11 @@ def renderFood(frame):
     
     posX,posY = randomPosition()
     
-    food = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="black")
+    food = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="green",highlightthickness=0)
+    
     food.place(x=posX,y=posY)
+    food.image = imgRef
+    food.create_image(10,11, image=imgRef)
     
     
 # Just to test
