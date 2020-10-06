@@ -6,53 +6,93 @@ GUI logic
 @author: Carlos Portela
 '''
 import tkinter
+from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
-from Logic.Snake import Snake
+
 
 windowWidth = 1000
 windowHeight = 800
 
-snakeCellW = 250
-snakeCellH = 250
+verticalMargin = 50
+frameWidth = windowWidth
+frameHeight = windowHeight-verticalMargin
+
+snakeCellW = 20
+snakeCellH = 20
 
 window = tkinter.Tk()
 
 def createBoardUI():
 
-    verticalMargin = 50
     board = Board(windowWidth,windowHeight)
     
     #defines window size
     window.geometry(board.getGeometry())
     window.title(board.title)
-    
+
     # prevent window from getting resized
     window.resizable(0,0)
     
-    windowFrame = tkinter.Frame(window, width = windowWidth, height = windowHeight-verticalMargin, bg = "brown")
+    windowFrame = tkinter.Frame(window, width = frameWidth, height = frameHeight, bg = "green")
     # pack is used to show the object in the window
     windowFrame.pack()
         
     return windowFrame
 
 
-def renderSnake(frame):
-    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH)
-    s.place(x=windowWidth/2, y=windowHeight/2)
+
+def renderSnakeHead(frame,posX,posY):
+    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue")
+    s.place(x=posX,y=posY)
     
-    img = Image.open("../Resources/snake2.gif")
+    # creates snake eyes
+    s.create_rectangle(snakeCellW-10,0, snakeCellW-3,snakeCellH-12, fill="red")
+    s.create_rectangle(snakeCellW-10,snakeCellH-8, snakeCellW-3,snakeCellH, fill="red")
+
+
+def renderSnakeCell(frame,posX,posY):
+    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue")
+    s.place(x=posX,y=posY)
+    s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
+    
+
+def renderSnake(frame,snake):
+    
+    snakePosX = windowWidth/2
+    snakePosY = windowHeight/2
+
+    renderSnakeHead(frame,snakePosX,snakePosY)
+    
+    for _ in range(snake.getSize()):
+        snakePosX -= snakeCellW
+        renderSnakeCell(frame,snakePosX,snakePosY)
+
+    '''img = Image.open("../Resources/snake2.gif")
     print(img.size)
     image = ImageTk.PhotoImage(img)
     s.image = image
-    s.create_image(windowWidth/2,windowHeight/3, image=image)
+    s.create_image(windowWidth/2,windowHeight/3, image=image)'''
+        
 
-    #s.create_rectangle(0, 0, snakeCellW, snakeCellH, fill="green")
+# returns tuple for random position to place food
+def randomPosition():
+    r1 = Random()
+    randPosX = r1.randint(0,frameWidth)
+    randPosY = r1.randint(0,frameHeight)
+    
+    return (randPosX,randPosY)
 
-    snake = Snake(windowWidth/2,windowHeight/2)
+
+# renders an apple in a random position
+def renderFood(frame):
+    
+    posX,posY = randomPosition()
+    
+    food = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="black")
+    food.place(x=posX,y=posY)
     
     
-
 # Just to test
 if __name__ == '__main__':
     
@@ -62,6 +102,3 @@ if __name__ == '__main__':
     
     window.mainloop()
 
-    
-    
-    

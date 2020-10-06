@@ -3,13 +3,18 @@ Created on 05/08/2020
 
 @author: jcarl
 '''
-from GUI.Screen import createBoardUI, renderSnake
+
+import GUI.Screen as Screen
+from Logic.Snake import Snake
 
 if __name__ == '__main__':
     
-    window = createBoardUI()
+    window = Screen.createBoardUI()
     
-    renderSnake(window)
+    snake = Snake(Screen.windowWidth/2,Screen.windowHeight/2)
+
+    Screen.renderSnake(window,snake)
     
+    Screen.renderFood(window)
     
     window.mainloop()
