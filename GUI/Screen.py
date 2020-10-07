@@ -17,16 +17,22 @@ windowWidth = 1000
 windowHeight = 800
 
 verticalMargin = 50
+horizontalMargin = 20
+
 frameWidth = windowWidth
 frameHeight = windowHeight-verticalMargin
 
 snakeCellW = 20
 snakeCellH = 20
 
-imgRef = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))  
+scoreMarginVertical = 48
+scoreMarginHorizontal = 10
+
+imgApple = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))
+imgEnter = ImageTk.PhotoImage(Image.open("../Resources/enter.png"))
+
 
 def createBoardUI():
-
     board = Board(windowWidth,windowHeight)
     
     #defines window size
@@ -60,7 +66,6 @@ def renderSnakeCell(frame,posX,posY):
     
 
 def renderSnake(frame,snake):
-    
     snakePosX = windowWidth/2
     snakePosY = windowHeight/2
 
@@ -69,7 +74,6 @@ def renderSnake(frame,snake):
     for _ in range(snake.getSize()):
         snakePosX -= snakeCellW
         renderSnakeCell(frame,snakePosX,snakePosY)
-
 
 # returns tuple for random position to place food
 def randomPosition():
@@ -82,22 +86,44 @@ def randomPosition():
 
 # renders an apple in a random position
 def renderFood(frame):
-    
     posX,posY = randomPosition()
     
     food = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="green",highlightthickness=0)
-    
     food.place(x=posX,y=posY)
-    food.image = imgRef
-    food.create_image(10,11, image=imgRef)
+    #food.image = imgApple
+    food.create_image(10,11, image=imgApple)
     
+
+def renderScore():
+    score = tkinter.Canvas(window, width=windowWidth/5, height=snakeCellH*2,highlightthickness=0)
+    score.place(x=scoreMarginHorizontal,y=windowHeight-scoreMarginVertical)
+    score.create_text(scoreMarginHorizontal*5,scoreMarginVertical/2,font="Times 25 bold",text="Score:")
+
+    return score
+
+
+def renderScoreValue(canvas,points):
+    if len(points) == 1:   
+        canvas.create_text(scoreMarginHorizontal*11,scoreMarginVertical/2,font="Times 25 bold",text=points)
+    elif len(points) == 2:
+        canvas.create_text(scoreMarginHorizontal*11+5,scoreMarginVertical/2,font="Times 25 bold",text=points)
+    else:
+        canvas.create_text(scoreMarginHorizontal*11+10,scoreMarginVertical/2,font="Times 25 bold",text=points)
+        
+
+def renderInstructions():
     
-# Just to test
-if __name__ == '__main__':
+    canvOffset = 30
+    horzOffset = 65
     
-    frame = createBoardUI()
+    instr = tkinter.Canvas(window,width=windowWidth/3, height=snakeCellH*2,highlightthickness=0)
+    instr.place(x=(windowWidth/3)+canvOffset,y=windowHeight - scoreMarginVertical)
     
-    renderSnake(frame)
+    instr.create_text(scoreMarginHorizontal*5,scoreMarginVertical/2,font="Times 25 bold",text="Press ")
     
-    window.mainloop()
+    #creates picture with key used to start the game
+    instr.create_image(scoreMarginHorizontal*5+horzOffset,(scoreMarginVertical/2)-3, image=imgEnter)
+    
+    #creates remaining statement
+    instr.create_text(scoreMarginHorizontal*5+(horzOffset*2.3),scoreMarginVertical/2,font="Times 25 bold",text="to start!")
 
