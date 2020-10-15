@@ -8,7 +8,7 @@ Snake controlled and used to play the game
 
 class Snake:
 
-    def __init__(self,initPosX,initPosY,size=3,speed=10):
+    def __init__(self,initPosX,initPosY,size=3,speed=3):
         self.size = size
         self.speed = speed
         self.posX =  initPosX
@@ -23,6 +23,9 @@ class Snake:
     def getSize(self):
         return self.size
     
+    def getSpeed(self):
+        return self.speed
+    
     def setSpeed(self,newSpeed):
         self.speed = newSpeed
         
@@ -34,5 +37,15 @@ class Snake:
         
     def setPosY(self,positionY):
         self.posY = positionY
+        
+    def move(self,direction):
+        if direction == "UP":
+            self.setPosY(self.getPosY()+(1*self.getSpeed()))
+        elif direction == "DOWN":
+            self.setPosY(self.getPosY()-(1*self.getSpeed()))
+        elif direction == "LEFT":
+            self.setPosX(self.getPosX()-(1*self.getSpeed()))
+        elif direction == "RIGHT":
+            self.setPosX(self.getPosX()+(1*self.getSpeed()))
         
     
