@@ -5,14 +5,15 @@ Snake controlled and used to play the game
 
 @author: Carlos Portela
 '''
-
 class Snake:
 
     def __init__(self,initPosX,initPosY,size=3,speed=3):
-        self.size = size
-        self.speed = speed
-        self.posX =  initPosX
-        self.posY =  initPosY
+        self.size      = size
+        self.speed     = speed
+        self.posX      = initPosX
+        self.posY      = initPosY
+        self.canvas    = None
+        self.rectangle = None
     
     def getPosX(self):
         return self.posX
@@ -26,6 +27,12 @@ class Snake:
     def getSpeed(self):
         return self.speed
     
+    def getCanvas(self):
+        return self.canvas
+
+    def getRectangle(self):
+        return self.rectangle
+    
     def setSpeed(self,newSpeed):
         self.speed = newSpeed
         
@@ -38,14 +45,21 @@ class Snake:
     def setPosY(self,positionY):
         self.posY = positionY
         
-    def move(self,direction):
-        if direction == "UP":
+    def setCanvas(self,canvas):
+        self.canvas = canvas
+        
+    def setRectangle(self,rectangle):
+        self.rectangle = rectangle
+        
+    def move(self,event):
+        print(event.keysym)
+        if event.keysym == "UP":
             self.setPosY(self.getPosY()+(1*self.getSpeed()))
-        elif direction == "DOWN":
+        elif event.keysym == "DOWN":
             self.setPosY(self.getPosY()-(1*self.getSpeed()))
-        elif direction == "LEFT":
+        elif event.keysym == "LEFT":
             self.setPosX(self.getPosX()-(1*self.getSpeed()))
-        elif direction == "RIGHT":
+        elif event.keysym == "RIGHT":
             self.setPosX(self.getPosX()+(1*self.getSpeed()))
         
     

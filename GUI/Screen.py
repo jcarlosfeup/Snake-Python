@@ -5,11 +5,11 @@ GUI logic
 
 @author: Carlos Portela
 '''
+
 import tkinter
 from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
-
 
 window = tkinter.Tk()
 
@@ -45,9 +45,6 @@ def createBoardUI():
     windowFrame = tkinter.Frame(window, width = frameWidth, height = frameHeight, bg = "green")
     # pack is used to show the object in the window
     windowFrame.pack()
-        
-    return windowFrame
-
 
 
 def renderSnakeHead(frame,posX,posY):
@@ -57,23 +54,34 @@ def renderSnakeHead(frame,posX,posY):
     # creates snake eyes
     s.create_rectangle(snakeCellW-10,0, snakeCellW-3,snakeCellH-12, fill="red")
     s.create_rectangle(snakeCellW-10,snakeCellH-8, snakeCellW-3,snakeCellH, fill="red")
+    
+    return s
 
 
 def renderSnakeCell(frame,posX,posY):
     s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
     s.place(x=posX,y=posY)
-    s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
+    obj = s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
+
+    return (s,obj)
     
 
 def renderSnake(frame,snake):
     snakePosX = windowWidth/2
     snakePosY = windowHeight/2
 
-    renderSnakeHead(frame,snakePosX,snakePosY)
+    head = renderSnakeHead(frame,snakePosX,snakePosY)
     
     for _ in range(snake.getSize()):
         snakePosX -= snakeCellW
-        renderSnakeCell(frame,snakePosX,snakePosY)
+        cell = renderSnakeCell(frame,snakePosX,snakePosY)
+        
+    return cell
+
+'''def renderMovement(canvas,obj,objectClass):
+    canvas.move(obj,objectClass.getPosX(),objectClass.getPosY())
+    #canvas.after(1000,renderMovement(canvas,obj,objectClass))'''
+
 
 # returns tuple for random position to place food
 def randomPosition():
