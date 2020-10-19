@@ -7,45 +7,52 @@ import tkinter
 import GUI.Screen as sr
 from Logic.Snake import Snake
 
-def renderMovement(canvas,obj,objectClass):
-    canvas.move(obj,objectClass.getPosX(),objectClass.getPosY())
 
-
-def movement(snake):
-    canvas = snake.getCanvas()
-    canvas.move(snake.getRectangle(),snake.getPosX(),snake.getPosY())
-    #canvas.after(1000,callback=movement)
-
+snake = Snake(1000/2,800/2)
 
 if __name__ == '__main__':
-    
+
     points = 0
     
     sr.createBoardUI()
-    
-    snake = Snake(sr.windowWidth/2,sr.windowHeight/2)
-    snakeCanvas,rectangle = sr.renderSnake(sr.window,snake)
-    
-    snake.setCanvas(snakeCanvas)
-    snake.setRectangle(rectangle)
 
+    sr.renderSnake(sr.window)
+    
+    #snake.setCanvas(snakeCanvas)
+    #snake.setRectangle(rectangle)
+    #snakeCanvas.place(x=450,y=450)
+
+    #renders objects
     sr.renderFood(sr.window)
     scoreCanvas = sr.renderScore()
     sr.renderScoreValue(scoreCanvas,str(points))
-        
-    # This will bind arrow keys to the tkinter 
-    # toplevel which will navigate the image or drawing 
 
-    '''sr.bind("<KeyPress-Left>", lambda e: snake.move(e)) 
-    sr.bind("<KeyPress-Right>", lambda e: snake.move(e)) 
-    sr.bind("<KeyPress-Up>", lambda e: snake.move(e)) 
-    sr.bind("<KeyPress-Down>", lambda e: snake.move(e))'''
 
-    #TODO
+    def movement(event):
+        x_offset, y_offset = 0, 0
+        if event.keysym == "Up":
+            y_offset = -10
+            #snake.setPosY(snake.getPosY()+(1*snake.getSpeed()))  # substituir pelo metodo da classe
+        elif event.keysym == "Down":
+            #snake.setPosY(snake.getPosY()-(1*snake.getSpeed()))
+            y_offset = +10
+        elif event.keysym == "Left":
+            #snake.setPosX(snake.getPosX()-(1*snake.getSpeed()))
+            x_offset = -10
+        elif event.keysym == "Right":
+            #snake.setPosX(snake.getPosX()+(1*snake.getSpeed()))
+            x_offset = +10
+
+        for canv,obj in sr.fullSnake:
+            (snake.canvas).move(obj,x_offset, y_offset)
+            canv.move(obj,x_offset, y_offset)
+
+        print(snake.getPosX())
+        print(snake.getPosY())
+
     # while not click on ENTER, renders ELSE hides
     sr.renderInstructions()
-    
-    #print(snake.getPosX())
-    #movement(snake)
-    
+
+    sr.window.bind("<Key>", movement)
+
     sr.window.mainloop()

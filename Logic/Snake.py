@@ -51,15 +51,14 @@ class Snake:
     def setRectangle(self,rectangle):
         self.rectangle = rectangle
         
-    def move(self,event):
-        print(event.keysym)
-        if event.keysym == "UP":
+    def move(self,direction):
+        if direction == "UP":
             self.setPosY(self.getPosY()+(1*self.getSpeed()))
-        elif event.keysym == "DOWN":
+        elif direction == "DOWN":
             self.setPosY(self.getPosY()-(1*self.getSpeed()))
-        elif event.keysym == "LEFT":
+        elif direction == "LEFT":
             self.setPosX(self.getPosX()-(1*self.getSpeed()))
-        elif event.keysym == "RIGHT":
+        elif direction == "RIGHT":
             self.setPosX(self.getPosX()+(1*self.getSpeed()))
         
     

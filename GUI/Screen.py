@@ -7,11 +7,14 @@ GUI logic
 '''
 
 import tkinter
+import Logic.Game as Game
 from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
 
+
 window = tkinter.Tk()
+fullSnake = []
 
 windowWidth = 1000
 windowHeight = 800
@@ -41,46 +44,45 @@ def createBoardUI():
 
     # prevent window from getting resized
     window.resizable(0,0)
-    
+
     windowFrame = tkinter.Frame(window, width = frameWidth, height = frameHeight, bg = "green")
     # pack is used to show the object in the window
-    windowFrame.pack()
+    #windowFrame.pack()
 
 
 def renderSnakeHead(frame,posX,posY):
     s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
     s.place(x=posX,y=posY)
+    #s.pack()
     
     # creates snake eyes
-    s.create_rectangle(snakeCellW-10,0, snakeCellW-3,snakeCellH-12, fill="red")
-    s.create_rectangle(snakeCellW-10,snakeCellH-8, snakeCellW-3,snakeCellH, fill="red")
-    
-    return s
+    eye1 = s.create_rectangle(snakeCellW-10,0, snakeCellW-3,snakeCellH-12, fill="red")
+    eye2 = s.create_rectangle(snakeCellW-10,snakeCellH-8, snakeCellW-3,snakeCellH, fill="red")
+
+    fullSnake.append((s,eye1))
+    fullSnake.append((s,eye2))
 
 
 def renderSnakeCell(frame,posX,posY):
     s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
     s.place(x=posX,y=posY)
-    obj = s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
+    #s.pack()
+    rect = s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
+    
+    Game.snake.setCanvas(s)
 
-    return (s,obj)
+    fullSnake.append((s,rect))
     
 
-def renderSnake(frame,snake):
+def renderSnake(frame):
     snakePosX = windowWidth/2
     snakePosY = windowHeight/2
 
-    head = renderSnakeHead(frame,snakePosX,snakePosY)
-    
-    for _ in range(snake.getSize()):
-        snakePosX -= snakeCellW
-        cell = renderSnakeCell(frame,snakePosX,snakePosY)
-        
-    return cell
+    renderSnakeHead(frame,snakePosX,snakePosY)
 
-'''def renderMovement(canvas,obj,objectClass):
-    canvas.move(obj,objectClass.getPosX(),objectClass.getPosY())
-    #canvas.after(1000,renderMovement(canvas,obj,objectClass))'''
+    for _ in range(Game.snake.getSize()):
+        snakePosX -= snakeCellW
+        renderSnakeCell(frame,snakePosX,snakePosY)
 
 
 # returns tuple for random position to place food
