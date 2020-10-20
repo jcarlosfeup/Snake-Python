@@ -14,12 +14,14 @@ from Logic.Board import Board
 
 
 window = tkinter.Tk()
+
+#list of objects composing the snake
 fullSnake = []
 
 windowWidth = 1000
 windowHeight = 800
 
-verticalMargin = 50
+verticalMargin = 60
 horizontalMargin = 20
 
 frameWidth = windowWidth
@@ -34,10 +36,14 @@ scoreMarginHorizontal = 10
 imgApple = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))
 imgEnter = ImageTk.PhotoImage(Image.open("../Resources/enter.png"))
 
+#window general canvas
+genCanvas = tkinter.Canvas(window, width=frameWidth, height=frameHeight,bg="green",highlightbackground="black")
+genCanvas.pack()
+
 
 def createBoardUI():
     board = Board(windowWidth,windowHeight)
-    
+
     #defines window size
     window.geometry(board.getGeometry())
     window.title(board.title)
@@ -50,39 +56,35 @@ def createBoardUI():
     #windowFrame.pack()
 
 
-def renderSnakeHead(frame,posX,posY):
-    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
-    s.place(x=posX,y=posY)
-    #s.pack()
+def renderSnakeCell(posX1,posY1,posX2,posY2):
+    cell = genCanvas.create_rectangle(posX1,posY1,posX2,posY2, fill="red",outline="blue")
+    fullSnake.append(cell)
+
+
+def renderSnake():
+
+    initialPosX = windowWidth/2
+    initialPosY = windowHeight/2
+    eyeYMargin  = 2
+
+    #creates rectangle for the head
+    initialPosX2 = initialPosX+snakeCellW
+    initialPosY2 = initialPosY+snakeCellH
+    head = genCanvas.create_rectangle(initialPosX,initialPosY,initialPosX2,initialPosY2, fill="red",outline="blue")
     
-    # creates snake eyes
-    eye1 = s.create_rectangle(snakeCellW-10,0, snakeCellW-3,snakeCellH-12, fill="red")
-    eye2 = s.create_rectangle(snakeCellW-10,snakeCellH-8, snakeCellW-3,snakeCellH, fill="red")
+    #creates snake eyes
+    eye1 = genCanvas.create_rectangle(initialPosX+10,initialPosY+eyeYMargin,initialPosX+snakeCellW-3,initialPosY+8, fill="blue")
+    eye2 = genCanvas.create_rectangle(initialPosX+10,initialPosY+12,initialPosX+snakeCellW-3,initialPosY+snakeCellH-eyeYMargin, fill="blue")
 
-    fullSnake.append((s,eye1))
-    fullSnake.append((s,eye2))
-
-
-def renderSnakeCell(frame,posX,posY):
-    s = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="blue",highlightbackground="black")
-    s.place(x=posX,y=posY)
-    #s.pack()
-    rect = s.create_rectangle(4,4, snakeCellW-1, snakeCellH-2, fill="red")
+    #adds snake objects to the list
+    fullSnake.append(head)
+    fullSnake.append(eye1)
+    fullSnake.append(eye2)
     
-    Game.snake.setCanvas(s)
-
-    fullSnake.append((s,rect))
-    
-
-def renderSnake(frame):
-    snakePosX = windowWidth/2
-    snakePosY = windowHeight/2
-
-    renderSnakeHead(frame,snakePosX,snakePosY)
-
-    for _ in range(Game.snake.getSize()):
-        snakePosX -= snakeCellW
-        renderSnakeCell(frame,snakePosX,snakePosY)
+    for _ in range(3):  #TODO change to snake SIZE
+        initialPosX  -= snakeCellW
+        initialPosX2 = initialPosX + snakeCellW
+        renderSnakeCell(initialPosX,initialPosY,initialPosX2,initialPosY2)
 
 
 # returns tuple for random position to place food
