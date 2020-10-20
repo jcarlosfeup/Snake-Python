@@ -7,135 +7,177 @@ GUI logic
 '''
 
 import tkinter
-import Logic.Game as Game
 from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
 
 
-window = tkinter.Tk()
-
-#list of objects composing the snake
-fullSnake = []
-
-windowWidth = 1000
-windowHeight = 800
-
-verticalMargin = 60
-horizontalMargin = 20
-
-frameWidth = windowWidth
-frameHeight = windowHeight-verticalMargin
-
-snakeCellW = 20
-snakeCellH = 20
-
-scoreMarginVertical = 48
-scoreMarginHorizontal = 10
-
-imgApple = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))
-imgEnter = ImageTk.PhotoImage(Image.open("../Resources/enter.png"))
-
-#window general canvas
-genCanvas = tkinter.Canvas(window, width=frameWidth, height=frameHeight,bg="green",highlightbackground="black")
-genCanvas.pack()
-
-
-def createBoardUI():
-    board = Board(windowWidth,windowHeight)
-
-    #defines window size
-    window.geometry(board.getGeometry())
-    window.title(board.title)
-
-    # prevent window from getting resized
-    window.resizable(0,0)
-
-    windowFrame = tkinter.Frame(window, width = frameWidth, height = frameHeight, bg = "green")
-    # pack is used to show the object in the window
-    #windowFrame.pack()
-
-
-def renderSnakeCell(posX1,posY1,posX2,posY2):
-    cell = genCanvas.create_rectangle(posX1,posY1,posX2,posY2, fill="red",outline="blue")
-    fullSnake.append(cell)
-
-
-def renderSnake():
-
-    initialPosX = windowWidth/2
-    initialPosY = windowHeight/2
-    eyeYMargin  = 2
-
-    #creates rectangle for the head
-    initialPosX2 = initialPosX+snakeCellW
-    initialPosY2 = initialPosY+snakeCellH
-    head = genCanvas.create_rectangle(initialPosX,initialPosY,initialPosX2,initialPosY2, fill="red",outline="blue")
+class Screen:
     
-    #creates snake eyes
-    eye1 = genCanvas.create_rectangle(initialPosX+10,initialPosY+eyeYMargin,initialPosX+snakeCellW-3,initialPosY+8, fill="blue")
-    eye2 = genCanvas.create_rectangle(initialPosX+10,initialPosY+12,initialPosX+snakeCellW-3,initialPosY+snakeCellH-eyeYMargin, fill="blue")
+    def __init__(self,window):
+        self.window = window
+        self.snake  = []
+        
+        self.initConstants()
+        self.createBoardUI()
+        self.createCanvas()
+        self.renderSnake()
+        self.renderFood()
 
-    #adds snake objects to the list
-    fullSnake.append(head)
-    fullSnake.append(eye1)
-    fullSnake.append(eye2)
+
+    def initConstants(self):
+        self.WINDOW_WIDTH = 1000
+        self.WINDOW_HEIGHT = 800
+        
+        self.VERTICAL_MARGIN = 60
+        self.HORIZONTAL_MARGIN = 20
+        
+        self.FRAME_WIDTH = self.WINDOW_WIDTH
+        self.FRAME_HEIGHT = self.WINDOW_HEIGHT-self.VERTICAL_MARGIN
+        
+        self.SNAKE_CELL_W = 20
+        self.SNAKE_CELL_H = 20
+        
+        self.SCORE_MARGIN_VERTICAL = 48
+        self.SCORE_MARGIN_HORIZONTAL = 10
+        
+        self.IMG_APPLE = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))
+        self.IMG_ENTER = ImageTk.PhotoImage(Image.open("../Resources/enter.png"))
+
+
+    def createBoardUI(self):
+        board = Board(self.WINDOW_WIDTH,self.WINDOW_HEIGHT)
+
+        #defines window size
+        self.window.geometry(board.getGeometry())
+        self.window.title(board.title)
     
-    for _ in range(3):  #TODO change to snake SIZE
-        initialPosX  -= snakeCellW
-        initialPosX2 = initialPosX + snakeCellW
-        renderSnakeCell(initialPosX,initialPosY,initialPosX2,initialPosY2)
+        # prevent window from getting resized
+        self.window.resizable(0,0)
 
 
-# returns tuple for random position to place food
-def randomPosition():
-    r1 = Random()
-    randPosX = r1.randint(0,frameWidth)
-    randPosY = r1.randint(0,frameHeight)
-    
-    return (randPosX,randPosY)
-
-
-# renders an apple in a random position
-def renderFood(frame):
-    posX,posY = randomPosition()
-    
-    food = tkinter.Canvas(frame, width=snakeCellW, height=snakeCellH,bg="green",highlightthickness=0)
-    food.place(x=posX,y=posY)
-    #food.image = imgApple
-    food.create_image(10,11, image=imgApple)
-    
-
-def renderScore():
-    score = tkinter.Canvas(window, width=windowWidth/5, height=snakeCellH*2,highlightthickness=0)
-    score.place(x=scoreMarginHorizontal,y=windowHeight-scoreMarginVertical)
-    score.create_text(scoreMarginHorizontal*5,scoreMarginVertical/2,font="Times 25 bold",text="Score:")
-
-    return score
-
-
-def renderScoreValue(canvas,points):
-    if len(points) == 1:   
-        canvas.create_text(scoreMarginHorizontal*11,scoreMarginVertical/2,font="Times 25 bold",text=points)
-    elif len(points) == 2:
-        canvas.create_text(scoreMarginHorizontal*11+5,scoreMarginVertical/2,font="Times 25 bold",text=points)
-    else:
-        canvas.create_text(scoreMarginHorizontal*11+10,scoreMarginVertical/2,font="Times 25 bold",text=points)
+    def createCanvas(self):
+        #window general canvas
+        self.genCanvas = tkinter.Canvas(window, width=self.FRAME_WIDTH, height=self.FRAME_HEIGHT,bg="green",highlightbackground="black")
+        self.genCanvas.pack()
         
 
-def renderInstructions():
+    def renderSnake(self):
+
+        def renderSnakeCell(posX1,posY1,posX2,posY2):
+            cell = self.genCanvas.create_rectangle(posX1,posY1,posX2,posY2, fill="red",outline="blue")
+            self.snake.append(cell)
+
+        initialPosX = (self.WINDOW_WIDTH)/2
+        initialPosY = (self.WINDOW_HEIGHT)/2
+        eyeYMargin  = 2
+
+        #creates rectangle for the head
+        initialPosX2 = initialPosX+self.SNAKE_CELL_W
+        initialPosY2 = initialPosY+self.SNAKE_CELL_H
+        head = self.genCanvas.create_rectangle(initialPosX,initialPosY,initialPosX2,initialPosY2, fill="red",outline="blue")
+        
+        eye1 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+eyeYMargin,initialPosX+self.SNAKE_CELL_W-3,initialPosY+8, fill="blue")
+        eye2 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+12,initialPosX+self.SNAKE_CELL_W-3,initialPosY+self.SNAKE_CELL_H-eyeYMargin, fill="blue")
+
+        #adds snake objects to the list
+        self.snake.append(head)
+        self.snake.append(eye1)
+        self.snake.append(eye2)
+        
+        for _ in range(3):  #TODO change to snake SIZE
+            initialPosX  -= self.SNAKE_CELL_W
+            initialPosX2 = initialPosX + self.SNAKE_CELL_W
+            renderSnakeCell(initialPosX,initialPosY,initialPosX2,initialPosY2)
+
+
+    # returns tuple for random position to place food
+    def randomPosition(self):
+        r1 = Random()
+        randPosX = r1.randint(0,self.FRAME_WIDTH)
+        randPosY = r1.randint(0,self.FRAME_HEIGHT)
+        
+        return (randPosX,randPosY)
+
+
+    # renders an apple in a random position
+    def renderFood(self):
+        posX,posY = self.randomPosition()
+
+        food = tkinter.Canvas(self.window, width=self.SNAKE_CELL_W, height=self.SNAKE_CELL_H,bg="green",highlightthickness=0)
+        food.place(x=posX,y=posY)
+        #food.image = IMG_APPLE
+        food.create_image(10,11, image=self.IMG_APPLE)
     
-    canvOffset = 30
-    horzOffset = 65
+
+    def renderScore(self):
+        score = tkinter.Canvas(window, width=self.WINDOW_WIDTH/5, height=self.SNAKE_CELL_H*2,highlightthickness=0)
+        score.place(x=self.SCORE_MARGIN_HORIZONTAL,y=self.WINDOW_HEIGHT-self.SCORE_MARGIN_VERTICAL)
+        score.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Score:")
+
+        return score
+
+
+    def renderScoreValue(self,canvas,points):
+        if len(points) == 1:   
+            canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+        elif len(points) == 2:
+            canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+        else:
+            canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+        
+
+    def renderInstructions(self):
+        
+        canvOffset = 30
+        horzOffset = 65
+        
+        instr = tkinter.Canvas(window,width=self.WINDOW_WIDTH/3, height=self.SNAKE_CELL_H*2,highlightthickness=0)
+        instr.place(x=(self.WINDOW_WIDTH/3)+canvOffset,y=self.WINDOW_HEIGHT - self.SCORE_MARGIN_VERTICAL)
+        
+        instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Press ")
+        
+        #creates picture with key used to start the game
+        instr.create_image(self.SCORE_MARGIN_HORIZONTAL*5+horzOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=self.IMG_ENTER)
+        
+        #creates remaining statement
+        instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
+
+
+    def movement(self,event):
+        x_offset, y_offset = 0, 0
+        if event.keysym == "Up":
+            y_offset = -10
+            #snake.setPosY(snake.getPosY()+(1*snake.getSpeed()))  # substituir pelo metodo da classe
+        elif event.keysym == "Down":
+            #snake.setPosY(snake.getPosY()-(1*snake.getSpeed()))
+            y_offset = +10
+        elif event.keysym == "Left":
+            #snake.setPosX(snake.getPosX()-(1*snake.getSpeed()))
+            x_offset = -10
+        elif event.keysym == "Right":
+            #snake.setPosX(snake.getPosX()+(1*snake.getSpeed()))
+            x_offset = +10
+
+        for obj in self.snake:
+            self.genCanvas.move(obj,x_offset,y_offset)
+
+
+if __name__ == '__main__':
+
+    window = tkinter.Tk()
+    sr = Screen(window)
     
-    instr = tkinter.Canvas(window,width=windowWidth/3, height=snakeCellH*2,highlightthickness=0)
-    instr.place(x=(windowWidth/3)+canvOffset,y=windowHeight - scoreMarginVertical)
+    points = 0
     
-    instr.create_text(scoreMarginHorizontal*5,scoreMarginVertical/2,font="Times 25 bold",text="Press ")
+    scoreCanvas = sr.renderScore()
+    sr.renderScoreValue(scoreCanvas,str(points))
     
-    #creates picture with key used to start the game
-    instr.create_image(scoreMarginHorizontal*5+horzOffset,(scoreMarginVertical/2)-3, image=imgEnter)
+    # while not click on ENTER, renders ELSE hides
+    sr.renderInstructions()
     
-    #creates remaining statement
-    instr.create_text(scoreMarginHorizontal*5+(horzOffset*2.3),scoreMarginVertical/2,font="Times 25 bold",text="to start!")
+    #binds keyboard keys to a procedure
+    window.bind("<Key>", sr.movement)
+    
+    window.mainloop()
 
