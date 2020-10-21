@@ -11,7 +11,7 @@ from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
 from Logic.Snake import Snake
-
+from Logic.Cell import Cell
 
 class Screen:
     
@@ -106,6 +106,7 @@ class Screen:
 
         #adds snake objects to the list
         self.snake.append(head)
+        self.snakeObj.addToCells(Cell(1,initialPosX,initialPosY))  #TODO 
         self.snake.append(eye1)
         self.snake.append(eye2)
 
