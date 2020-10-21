@@ -7,14 +7,13 @@ Snake controlled and used to play the game
 '''
 class Snake:
 
-    def __init__(self,initPosX,initPosY,size=3,speed=3):
+    def __init__(self,initPosX=0,initPosY=0,size=3,speed=3):
         self.size      = size
         self.speed     = speed
         self.posX      = initPosX
         self.posY      = initPosY
-        self.canvas    = None
-        self.rectangle = None
-    
+        self.direction = "R"    #start direction is right
+
     def getPosX(self):
         return self.posX
 
@@ -32,6 +31,9 @@ class Snake:
 
     def getRectangle(self):
         return self.rectangle
+    
+    def getDirection(self):
+        return self.direction
     
     def setSpeed(self,newSpeed):
         self.speed = newSpeed
@@ -51,6 +53,9 @@ class Snake:
     def setRectangle(self,rectangle):
         self.rectangle = rectangle
         
+    def setDirection(self,newDir):
+        self.direction = newDir
+
     def move(self,direction):
         if direction == "UP":
             self.setPosY(self.getPosY()+(1*self.getSpeed()))

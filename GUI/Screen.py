@@ -10,6 +10,7 @@ import tkinter
 from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
+from Logic.Snake import Snake
 
 
 class Screen:
@@ -17,32 +18,42 @@ class Screen:
     def __init__(self,window):
         self.window = window
         self.snake  = []
+        self.snakeObj = Snake()
         
         self.initConstants()
         self.createBoardUI()
         self.createCanvas()
+        self.createImages()
         self.renderSnake()
         self.renderFood()
+        self.initObjects()
 
 
     def initConstants(self):
         self.WINDOW_WIDTH = 1000
         self.WINDOW_HEIGHT = 800
-        
+
         self.VERTICAL_MARGIN = 60
         self.HORIZONTAL_MARGIN = 20
-        
-        self.FRAME_WIDTH = self.WINDOW_WIDTH
-        self.FRAME_HEIGHT = self.WINDOW_HEIGHT-self.VERTICAL_MARGIN
-        
+
+        self.CANVAS_WIDTH = self.WINDOW_WIDTH
+        self.CANVAS_HEIGHT = self.WINDOW_HEIGHT-self.VERTICAL_MARGIN
+
         self.SNAKE_CELL_W = 20
         self.SNAKE_CELL_H = 20
+
+        self.SNAKE_INITIAL_POSX2 = (self.WINDOW_WIDTH)/2 + self.SNAKE_CELL_W
+        self.SNAKE_INITIAL_POSY2 = (self.WINDOW_HEIGHT)/2 + self.SNAKE_CELL_H
+
+        self.FOOD_W = self.SNAKE_CELL_W
+        self.FOOD_H = self.SNAKE_CELL_H
         
         self.SCORE_MARGIN_VERTICAL = 48
         self.SCORE_MARGIN_HORIZONTAL = 10
         
-        self.IMG_APPLE = ImageTk.PhotoImage(Image.open("../Resources/apple2.png"))
-        self.IMG_ENTER = ImageTk.PhotoImage(Image.open("../Resources/enter.png"))
+    def initObjects(self):
+        self.snakeObj.setPosX(self.SNAKE_INITIAL_POSX2)
+        self.snakeObj.setPosY(self.SNAKE_INITIAL_POSY2)
 
 
     def createBoardUI(self):
@@ -58,9 +69,17 @@ class Screen:
 
     def createCanvas(self):
         #window general canvas
-        self.genCanvas = tkinter.Canvas(window, width=self.FRAME_WIDTH, height=self.FRAME_HEIGHT,bg="green",highlightbackground="black")
+        self.genCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT,bg="green",highlightbackground="black")
         self.genCanvas.pack()
-        
+
+
+    def createImages(self):
+        apple = Image.open("../Resources/apple.png")
+        apple = apple.resize((self.FOOD_H, self.FOOD_W), Image.ANTIALIAS)
+
+        self.IMG_APPLE = ImageTk.PhotoImage(apple)
+        self.IMG_ENTER = ImageTk.PhotoImage(Image.open("../Resources/enter.png"))
+
 
     def renderSnake(self):
 
@@ -73,29 +92,40 @@ class Screen:
         eyeYMargin  = 2
 
         #creates rectangle for the head
-        initialPosX2 = initialPosX+self.SNAKE_CELL_W
-        initialPosY2 = initialPosY+self.SNAKE_CELL_H
-        head = self.genCanvas.create_rectangle(initialPosX,initialPosY,initialPosX2,initialPosY2, fill="red",outline="blue")
+        head = self.genCanvas.create_rectangle(initialPosX,initialPosY,
+                                               self.SNAKE_INITIAL_POSX2,
+                                               self.SNAKE_INITIAL_POSY2,
+                                               fill="red",outline="blue")
         
-        eye1 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+eyeYMargin,initialPosX+self.SNAKE_CELL_W-3,initialPosY+8, fill="blue")
-        eye2 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+12,initialPosX+self.SNAKE_CELL_W-3,initialPosY+self.SNAKE_CELL_H-eyeYMargin, fill="blue")
+        eye1 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+eyeYMargin,
+                                               initialPosX+self.SNAKE_CELL_W-3,initialPosY+8,
+                                               fill="blue")
+        eye2 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+12,
+                                               initialPosX+self.SNAKE_CELL_W-3,initialPosY+self.SNAKE_CELL_H-eyeYMargin,
+                                               fill="blue")
 
         #adds snake objects to the list
         self.snake.append(head)
         self.snake.append(eye1)
         self.snake.append(eye2)
-        
-        for _ in range(3):  #TODO change to snake SIZE
+
+        for _ in range(self.snakeObj.getSize()):
             initialPosX  -= self.SNAKE_CELL_W
             initialPosX2 = initialPosX + self.SNAKE_CELL_W
-            renderSnakeCell(initialPosX,initialPosY,initialPosX2,initialPosY2)
+            renderSnakeCell(initialPosX,initialPosY,initialPosX2,self.SNAKE_INITIAL_POSY2)
 
 
     # returns tuple for random position to place food
     def randomPosition(self):
         r1 = Random()
-        randPosX = r1.randint(0,self.FRAME_WIDTH)
-        randPosY = r1.randint(0,self.FRAME_HEIGHT)
+        randPosX = -1
+        randPosY = -1
+
+        while (randPosX % 10) > 0:
+            randPosX = r1.randint(0,self.CANVAS_WIDTH)
+
+        while (randPosY % 10) > 0:
+            randPosY = r1.randint(0,self.CANVAS_HEIGHT)
         
         return (randPosX,randPosY)
 
@@ -103,12 +133,8 @@ class Screen:
     # renders an apple in a random position
     def renderFood(self):
         posX,posY = self.randomPosition()
+        self.genCanvas.create_image(posX,posY,image=self.IMG_APPLE)
 
-        food = tkinter.Canvas(self.window, width=self.SNAKE_CELL_W, height=self.SNAKE_CELL_H,bg="green",highlightthickness=0)
-        food.place(x=posX,y=posY)
-        #food.image = IMG_APPLE
-        food.create_image(10,11, image=self.IMG_APPLE)
-    
 
     def renderScore(self):
         score = tkinter.Canvas(window, width=self.WINDOW_WIDTH/5, height=self.SNAKE_CELL_H*2,highlightthickness=0)
@@ -146,6 +172,7 @@ class Screen:
 
     def movement(self,event):
         x_offset, y_offset = 0, 0
+                
         if event.keysym == "Up":
             y_offset = -10
             #snake.setPosY(snake.getPosY()+(1*snake.getSpeed()))  # substituir pelo metodo da classe
@@ -153,23 +180,26 @@ class Screen:
             #snake.setPosY(snake.getPosY()-(1*snake.getSpeed()))
             y_offset = +10
         elif event.keysym == "Left":
-            #snake.setPosX(snake.getPosX()-(1*snake.getSpeed()))
-            x_offset = -10
+            if self.snakeObj.getDirection() == 'R':
+                pass
+            else:
+                x_offset = -10
         elif event.keysym == "Right":
             #snake.setPosX(snake.getPosX()+(1*snake.getSpeed()))
             x_offset = +10
 
         for obj in self.snake:
             self.genCanvas.move(obj,x_offset,y_offset)
+            #print(self.genCanvas.coords(obj))
 
 
 if __name__ == '__main__':
 
     window = tkinter.Tk()
     sr = Screen(window)
-    
+
     points = 0
-    
+
     scoreCanvas = sr.renderScore()
     sr.renderScoreValue(scoreCanvas,str(points))
     
