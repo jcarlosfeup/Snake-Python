@@ -17,7 +17,6 @@ class Screen:
     
     def __init__(self,window):
         self.window = window
-        self.snake  = []
         self.snakeObj = Snake()
         
         self.initConstants()
@@ -83,9 +82,9 @@ class Screen:
 
     def renderSnake(self):
 
-        def renderSnakeCell(posX1,posY1,posX2,posY2):
+        def renderSnakeCell(indice,posX1,posY1,posX2,posY2):
             cell = self.genCanvas.create_rectangle(posX1,posY1,posX2,posY2, fill="red",outline="blue")
-            self.snake.append(cell)
+            self.snakeObj.addToCells(Cell(indice,posX1,posY1,cell))
 
         initialPosX = (self.WINDOW_WIDTH)/2
         initialPosY = (self.WINDOW_HEIGHT)/2
@@ -96,24 +95,26 @@ class Screen:
                                                self.SNAKE_INITIAL_POSX2,
                                                self.SNAKE_INITIAL_POSY2,
                                                fill="red",outline="blue")
-        
-        eye1 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+eyeYMargin,
+        eyeInitialPosX = initialPosX+10
+        eye1InitialPosY = initialPosY+eyeYMargin
+        eye2InitialPosY = initialPosY+12
+
+        eye1 = self.genCanvas.create_rectangle(eyeInitialPosX,eye1InitialPosY,
                                                initialPosX+self.SNAKE_CELL_W-3,initialPosY+8,
                                                fill="blue")
-        eye2 = self.genCanvas.create_rectangle(initialPosX+10,initialPosY+12,
+        eye2 = self.genCanvas.create_rectangle(eyeInitialPosX,eye2InitialPosY,
                                                initialPosX+self.SNAKE_CELL_W-3,initialPosY+self.SNAKE_CELL_H-eyeYMargin,
                                                fill="blue")
 
-        #adds snake objects to the list
-        self.snake.append(head)
-        self.snakeObj.addToCells(Cell(1,initialPosX,initialPosY))  #TODO 
-        self.snake.append(eye1)
-        self.snake.append(eye2)
+        #adds objects/poligons to the snake object
+        self.snakeObj.addToCells(Cell(1,initialPosX,initialPosY,head))
+        self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye1InitialPosY,eye1))
+        self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye2InitialPosY,eye2))
 
-        for _ in range(self.snakeObj.getSize()):
+        for i in range(self.snakeObj.getSize()):
             initialPosX  -= self.SNAKE_CELL_W
             initialPosX2 = initialPosX + self.SNAKE_CELL_W
-            renderSnakeCell(initialPosX,initialPosY,initialPosX2,self.SNAKE_INITIAL_POSY2)
+            renderSnakeCell(i+2,initialPosX,initialPosY,initialPosX2,self.SNAKE_INITIAL_POSY2) #1 for the snake head + 1 for loop begins at 0
 
 
     # returns tuple for random position to place food
@@ -171,27 +172,17 @@ class Screen:
         instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
 
 
+    '''You hold all snake units in a list - that's already done. There are head and tail which are the first and the last elements of the list. So it is actually a queue.
+    On each tick, determine the direction in which you should move. For example, if the direction is left, then next head coordinates will be at (-1,0) relative to current head.
+    Insert new unit in the list at the head position with the coordinates determined in step 2.
+    Remove the tail unit from the list (and from the screen).'''
     def movement(self,event):
-        x_offset, y_offset = 0, 0
-                
-        if event.keysym == "Up":
-            y_offset = -10
-            #snake.setPosY(snake.getPosY()+(1*snake.getSpeed()))  # substituir pelo metodo da classe
-        elif event.keysym == "Down":
-            #snake.setPosY(snake.getPosY()-(1*snake.getSpeed()))
-            y_offset = +10
-        elif event.keysym == "Left":
-            if self.snakeObj.getDirection() == 'R':
-                pass
-            else:
-                x_offset = -10
-        elif event.keysym == "Right":
-            #snake.setPosX(snake.getPosX()+(1*snake.getSpeed()))
-            x_offset = +10
+        x_offset,y_offset = self.snakeObj.move(event)
 
-        for obj in self.snake:
-            self.genCanvas.move(obj,x_offset,y_offset)
-            #print(self.genCanvas.coords(obj))
+        for cell in self.snakeObj.getCells():
+
+            #calculates offset based on last position
+            self.genCanvas.move(cell.obj,x_offset,y_offset)
 
 
 if __name__ == '__main__':

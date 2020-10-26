@@ -8,10 +8,11 @@ Cell that compose the Snake
 
 class Cell:
 
-    def __init__(self, index,posX,posY):
+    def __init__(self, index,posX,posY,obj):
         self.index = index
         self.posX = posX
         self.posY = posY
+        self.obj  = obj
 
     def getIndex(self):
         return self.index
@@ -22,6 +23,9 @@ class Cell:
     def getPosY(self):
         return self.posY
     
+    def getObject(self):
+        return self.obj
+    
     def setIndex(self,idx):
         self.index = idx
         
@@ -30,3 +34,6 @@ class Cell:
         
     def setPosY(self,posY):
         self.posY = posY
+        
+    def setObject(self,obj):
+        self.obj = obj
