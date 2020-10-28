@@ -5,6 +5,7 @@ Snake controlled and used to play the game
 
 @author: Carlos Portela
 '''
+from copy import copy
 
 STEP_SIZE = 20
 
@@ -69,47 +70,68 @@ class Snake:
         self.Cells.append(newCell)
         
     def replaceHead(self,newHead):
+        
+        #updates cells indexes
+        for i in range(len(self.Cells)):
+            self.Cells[i].incrementIndex()
+        
         self.Cells.insert(0, newHead)
         self.setCells(self.Cells)
         
     def popTail(self):
-        self.Cells.pop()
+        return self.Cells.pop()
 
-    '''You hold all snake units in a list - that's already done. There are head and tail which are the first and the last elements of the list. So it is actually a queue.
-    On each tick, determine the direction in which you should move. For example, if the direction is left, then next head coordinates will be at (-1,0) relative to current head.
-    Insert new unit in the list at the head position with the coordinates determined in step 2.
-    Remove the tail unit from the list (and from the screen).'''
-    def turn(self,newDir):
-        if self.direction == RIGHT and newDir == UP:
-            currentHead = self.Cells[0]     #gets current head
-            newPosX = 0
-            newPosY = -STEP_SIZE
-            currentHead.setPosY(newPosY)
-            self.replaceHead(currentHead)   #sets new snake head in a different position
+    def turn(self,newDir,screen):
+        newHead = copy(self.Cells[0])     #gets current head and makes a new copy
         
-        print("BEfore POP " + str(len(self.Cells)))
-        self.popTail()
-        print("After POP " + str(len(self.Cells)))
+        newObject = screen.genCanvas.create_rectangle(newHead.getPosX(),newHead.getPosY(),
+                                                          newHead.getPosX()+screen.SNAKE_CELL_W,newHead.getPosY()+screen.SNAKE_CELL_H,
+                                                          fill="red",outline="blue")
+        newHead.setObject(newObject)
+
+        if (self.direction in (UP,RIGHT,LEFT) and newDir == UP):
+            print(newHead.getPosX())
+            print(newHead.getPosY())
+            newHead.setStepY(-STEP_SIZE)
+            newHead.setPosY(newHead.getPosY() - STEP_SIZE)
         
-        return (newPosX,newPosY)
+        elif(self.direction in (DOWN,RIGHT,LEFT) and newDir == DOWN):
+            newHead.setStepY(+STEP_SIZE)
+            newHead.setPosY(newHead.getPosY() + STEP_SIZE)
+
+        elif(self.direction in (LEFT,UP,DOWN) and newDir == LEFT):
+            newHead.setStepX(-STEP_SIZE)
+            newHead.setPosX(newHead.getPosX() - STEP_SIZE)
+        
+        elif(self.direction in (RIGHT,UP,DOWN) and newDir == RIGHT):
+            newHead.setStepX(+STEP_SIZE)
+            newHead.setPosX(newHead.getPosX() + STEP_SIZE)
+
+        self.replaceHead(newHead)   #sets new snake head in the first position
+
+        #removes tail from canvas and queue
+        tail = self.popTail()
+        screen.genCanvas.delete(tail.getObject())
 
 
-    def move(self,key):
-        x_offset, y_offset = 0, 0
-
+    def move(self,key,screen):
         if key.keysym == UP:
-            x_offset,y_offset = self.turn(UP)
+            if self.getDirection() != DOWN:
+                self.turn(UP,screen)
+                self.setDirection(UP)
             
         elif key.keysym == DOWN:
-            y_offset = +STEP_SIZE
-        elif key.keysym == LEFT:
-            if self.snakeObj.getDirection() == 'R':
-                pass
-            else:
-                x_offset = -STEP_SIZE
-        elif key.keysym == RIGHT:
-            x_offset = +STEP_SIZE
-            
-        return (x_offset,y_offset)
+            if self.getDirection() != UP:
+                self.turn(DOWN,screen)
+                self.setDirection(DOWN)
         
+        elif key.keysym == LEFT:
+            if self.getDirection() != RIGHT:
+                self.turn(LEFT,screen)
+                self.setDirection(LEFT)
+
+        elif key.keysym == RIGHT:
+            if self.getDirection() != LEFT:
+                self.turn(RIGHT,screen)
+                self.setDirection(RIGHT)
             

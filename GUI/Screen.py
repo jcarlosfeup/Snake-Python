@@ -108,8 +108,8 @@ class Screen:
 
         #adds objects/poligons to the snake object
         self.snakeObj.addToCells(Cell(1,initialPosX,initialPosY,head))
-        self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye1InitialPosY,eye1))
-        self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye2InitialPosY,eye2))
+        #self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye1InitialPosY,eye1))
+        #self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye2InitialPosY,eye2))
 
         for i in range(self.snakeObj.getSize()):
             initialPosX  -= self.SNAKE_CELL_W
@@ -156,7 +156,6 @@ class Screen:
         
 
     def renderInstructions(self):
-        
         canvOffset = 30
         horzOffset = 65
         
@@ -177,12 +176,17 @@ class Screen:
     Insert new unit in the list at the head position with the coordinates determined in step 2.
     Remove the tail unit from the list (and from the screen).'''
     def movement(self,event):
-        x_offset,y_offset = self.snakeObj.move(event)
+        self.snakeObj.move(event,self)
+        
+        print("Tamanho " + str(len(self.snakeObj.getCells())))
 
         for cell in self.snakeObj.getCells():
-
-            #calculates offset based on last position
-            self.genCanvas.move(cell.obj,x_offset,y_offset)
+            print(cell.getIndex())
+            #print(cell.getPosX())
+            #print(cell.getPosY())
+            self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
+            
+            cell.resetSteps()
 
 
 if __name__ == '__main__':

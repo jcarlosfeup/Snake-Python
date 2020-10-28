@@ -12,6 +12,8 @@ class Cell:
         self.index = index
         self.posX = posX
         self.posY = posY
+        self.stepX = 0
+        self.stepY = 0
         self.obj  = obj
 
     def getIndex(self):
@@ -22,6 +24,12 @@ class Cell:
 
     def getPosY(self):
         return self.posY
+    
+    def getStepX(self):
+        return self.stepX
+    
+    def getStepY(self):
+        return self.stepY
     
     def getObject(self):
         return self.obj
@@ -35,5 +43,18 @@ class Cell:
     def setPosY(self,posY):
         self.posY = posY
         
+    def setStepX(self,x):
+        self.stepX = x
+
+    def setStepY(self,y):
+        self.stepY = y
+        
     def setObject(self,obj):
         self.obj = obj
+        
+    def incrementIndex(self):
+        self.index = self.index + 1
+        
+    def resetSteps(self):
+        self.stepX = 0
+        self.stepY = 0
