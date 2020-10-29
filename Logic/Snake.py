@@ -6,6 +6,7 @@ Snake controlled and used to play the game
 @author: Carlos Portela
 '''
 from copy import copy
+from Logic.Cell import Cell
 
 STEP_SIZE = 20
 
@@ -21,7 +22,8 @@ class Snake:
         self.speed     = speed
         self.posX      = initPosX
         self.posY      = initPosY
-        self.direction = RIGHT    #right direction is the default
+        #right direction is the default
+        self.direction = RIGHT
         self.Cells = []
 
     def getPosX(self):
@@ -48,6 +50,11 @@ class Snake:
     def getCells(self):
         return self.Cells
     
+    def getHead(self):
+        for cell in self.Cells:
+            if cell.getIndex() == 1:
+                return cell 
+    
     def setSpeed(self,newSpeed):
         self.speed = newSpeed
         
@@ -69,24 +76,83 @@ class Snake:
     def addToCells(self,newCell):
         self.Cells.append(newCell)
         
-    def replaceHead(self,newHead):
+    def addEyesToCells(self,newCell):
+        self.Cells.insert(0,newCell)
         
+    def removesSnakeEyes(self,screen):
+        eyes = []
+        for cell in self.Cells:
+            if cell.getIndex() == 0:  #its an eye
+                screen.genCanvas.delete(cell.getObject())
+                eyes.append(cell)
+                
+        #removes eyes from snake object list
+        self.Cells.remove(eyes[0])
+        self.Cells.remove(eyes[1])
+
+
+    def createSnakeEyes(self,screen,direction,head):
+        eyeYMargin = 2
+        eyeXSize = 7
+        eyeYSize = 6
+        spaceBetween = 2
+        
+        #creates rectangles representing the eyes
+        if direction == UP:
+            eye1InitialPosX1 = head.getPosX()+eyeYMargin
+            eye1InitialPosX2 = eye1InitialPosX1+eyeXSize
+            eye1InitialPosY1 = head.getPosY()+eyeYMargin
+            eye1InitialPosY2 = eye1InitialPosY1+eyeYSize
+
+            eye2InitialPosX1 = eye1InitialPosX1+eyeXSize+spaceBetween
+            eye2InitialPosX2 = eye1InitialPosX1+eyeXSize+spaceBetween+eyeXSize
+            eye2InitialPosY1 = eye1InitialPosY1
+            eye2InitialPosY2 = eye2InitialPosY1+eyeYSize
+        elif direction == RIGHT:
+            eye1InitialPosX1 = head.getPosX()+10
+            eye1InitialPosX2 = head.getPosY()+10+eyeYSize
+            eye1InitialPosY1 = head.getPosY()-eyeYMargin
+            eye1InitialPosY2 = eye1InitialPosY1+eyeXSize
+            
+            eye2InitialPosX1 = eye1InitialPosX1+eyeXSize+spaceBetween  #TODO CHANGE THIS!!!!
+            eye2InitialPosX2 = eye1InitialPosX1+eyeXSize+spaceBetween+eyeXSize 
+            eye2InitialPosY1 = eye1InitialPosY1
+            eye2InitialPosY2 = eye2InitialPosY1+eyeYSize
+            
+
+        eye2 = screen.genCanvas.create_rectangle(eye2InitialPosX1,eye2InitialPosY1,
+                                                 eye2InitialPosX2,eye2InitialPosY2,
+                                                 fill="blue")
+        
+        eye1 = screen.genCanvas.create_rectangle(eye1InitialPosX1,eye1InitialPosY1,
+                                                 eye1InitialPosX2,eye1InitialPosY2,
+                                                 fill="blue")
+        
+        self.addEyesToCells(Cell(0,eye1InitialPosX1,eye1InitialPosY1,eye1))
+        self.addEyesToCells(Cell(0,eye2InitialPosX1,eye1InitialPosY1,eye2))
+
+
+    def replaceHead(self,newHead):
         #updates cells indexes
         for i in range(len(self.Cells)):
             self.Cells[i].incrementIndex()
         
+        newHead.setIndex(1)
         self.Cells.insert(0, newHead)
-        self.setCells(self.Cells)
-        
+
+
     def popTail(self):
         return self.Cells.pop()
 
+
     def turn(self,newDir,screen):
-        newHead = copy(self.Cells[0])     #gets current head and makes a new copy
+        #makes a copy of current head
+        newHead = copy(self.getHead())
         
         newObject = screen.genCanvas.create_rectangle(newHead.getPosX(),newHead.getPosY(),
                                                           newHead.getPosX()+screen.SNAKE_CELL_W,newHead.getPosY()+screen.SNAKE_CELL_H,
                                                           fill="red",outline="blue")
+        
         newHead.setObject(newObject)
 
         if (self.direction in (UP,RIGHT,LEFT) and newDir == UP):
@@ -106,8 +172,13 @@ class Snake:
         elif(self.direction in (RIGHT,UP,DOWN) and newDir == RIGHT):
             newHead.setStepX(+STEP_SIZE)
             newHead.setPosX(newHead.getPosX() + STEP_SIZE)
-
-        self.replaceHead(newHead)   #sets new snake head in the first position
+        
+        #sets new snake head in the first position
+        self.replaceHead(newHead)
+        
+        #removes previous snake eyes and creates new ones
+        self.removesSnakeEyes(screen)
+        self.createSnakeEyes(screen,newDir,newHead)
 
         #removes tail from canvas and queue
         tail = self.popTail()

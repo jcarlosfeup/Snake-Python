@@ -53,8 +53,9 @@ class Cell:
         self.obj = obj
         
     def incrementIndex(self):
-        self.index = self.index + 1
-        
+        if self.index != 0:
+            self.index = self.index + 1
+
     def resetSteps(self):
         self.stepX = 0
         self.stepY = 0

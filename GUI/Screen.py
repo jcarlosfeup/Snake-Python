@@ -86,8 +86,8 @@ class Screen:
             cell = self.genCanvas.create_rectangle(posX1,posY1,posX2,posY2, fill="red",outline="blue")
             self.snakeObj.addToCells(Cell(indice,posX1,posY1,cell))
 
-        initialPosX = (self.WINDOW_WIDTH)/2
-        initialPosY = (self.WINDOW_HEIGHT)/2
+        initialPosX = (self.WINDOW_WIDTH)/2  # 500
+        initialPosY = (self.WINDOW_HEIGHT)/2 # 400
         eyeYMargin  = 2
 
         #creates rectangle for the head
@@ -95,10 +95,11 @@ class Screen:
                                                self.SNAKE_INITIAL_POSX2,
                                                self.SNAKE_INITIAL_POSY2,
                                                fill="red",outline="blue")
-        eyeInitialPosX = initialPosX+10
-        eye1InitialPosY = initialPosY+eyeYMargin
+        eyeInitialPosX  = initialPosX+10  #510
+        eye1InitialPosY = initialPosY+eyeYMargin  #402
         eye2InitialPosY = initialPosY+12
-
+        #initialPosX 500 + 20-3 = 517   -> 517-510 = 7
+        #initialPosY+8 = 408  => 408-402 = 6
         eye1 = self.genCanvas.create_rectangle(eyeInitialPosX,eye1InitialPosY,
                                                initialPosX+self.SNAKE_CELL_W-3,initialPosY+8,
                                                fill="blue")
@@ -108,8 +109,8 @@ class Screen:
 
         #adds objects/poligons to the snake object
         self.snakeObj.addToCells(Cell(1,initialPosX,initialPosY,head))
-        #self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye1InitialPosY,eye1))
-        #self.snakeObj.addToCells(Cell(1,eyeInitialPosX,eye2InitialPosY,eye2))
+        self.snakeObj.addToCells(Cell(0,eyeInitialPosX,eye1InitialPosY,eye1))
+        self.snakeObj.addToCells(Cell(0,eyeInitialPosX,eye2InitialPosY,eye2))
 
         for i in range(self.snakeObj.getSize()):
             initialPosX  -= self.SNAKE_CELL_W
@@ -153,7 +154,7 @@ class Screen:
             canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
         else:
             canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
-        
+
 
     def renderInstructions(self):
         canvOffset = 30
@@ -171,10 +172,6 @@ class Screen:
         instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
 
 
-    '''You hold all snake units in a list - that's already done. There are head and tail which are the first and the last elements of the list. So it is actually a queue.
-    On each tick, determine the direction in which you should move. For example, if the direction is left, then next head coordinates will be at (-1,0) relative to current head.
-    Insert new unit in the list at the head position with the coordinates determined in step 2.
-    Remove the tail unit from the list (and from the screen).'''
     def movement(self,event):
         self.snakeObj.move(event,self)
         
