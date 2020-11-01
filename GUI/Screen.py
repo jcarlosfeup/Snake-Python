@@ -26,6 +26,7 @@ class Screen:
         self.renderSnake()
         self.renderFood()
         self.initObjects()
+        self.commands = {"Up": False,"Down": False, "Right": False, "Left": False}
 
 
     def initConstants(self):
@@ -170,21 +171,39 @@ class Screen:
         
         #creates remaining statement
         instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
-
-
-    def movement(self,event):
-        self.snakeObj.move(event,self)
         
-        print("Tamanho " + str(len(self.snakeObj.getCells())))
+    
+    def resetOtherCommands(self,command):
+        for k in self.commands:
+            if k != command:
+                self.commands[k] = False
+
+
+    def key_pressed(self,event):
+        self.commands[event.keysym] = True
+        self.resetOtherCommands(event.keysym)
+
+        
+    def movement(self):
+        if self.commands['Up']:
+            self.snakeObj.move("Up",self)
+        elif self.commands['Down']:
+            self.snakeObj.move("Down",self)
+        elif self.commands['Right']:
+            self.snakeObj.move("Right",self)
+        elif self.commands['Left']:
+            self.snakeObj.move("Left",self)
+        
+        #print("Tamanho " + str(len(self.snakeObj.getCells())))
 
         for cell in self.snakeObj.getCells():
-            print(cell.getIndex())
-            #print(cell.getPosX())
-            #print(cell.getPosY())
+            #print(cell.getIndex())
             self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
-            
             cell.resetSteps()
-
+        
+        # speed in milisecconds
+        self.window.after(self.snakeObj.getSpeed()*100, self.movement)
+    
 
 if __name__ == '__main__':
 
@@ -200,7 +219,9 @@ if __name__ == '__main__':
     sr.renderInstructions()
     
     #binds keyboard keys to a procedure
-    window.bind("<Key>", sr.movement)
+    window.bind("<KeyPress>", sr.key_pressed)
+
+    sr.movement()
     
     window.mainloop()
 

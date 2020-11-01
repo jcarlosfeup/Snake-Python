@@ -92,16 +92,16 @@ class Snake:
 
 
     def createSnakeEyes(self,screen,direction,head):
-        eyeYMargin = 2
+        eyeMargin = 2
         eyeXSize = 7
         eyeYSize = 6
         spaceBetween = 2
         
         #creates rectangles representing the eyes
         if direction == UP:
-            eye1InitialPosX1 = head.getPosX()+eyeYMargin
+            eye1InitialPosX1 = head.getPosX()+eyeMargin
             eye1InitialPosX2 = eye1InitialPosX1+eyeXSize
-            eye1InitialPosY1 = head.getPosY()+eyeYMargin
+            eye1InitialPosY1 = head.getPosY()+eyeMargin
             eye1InitialPosY2 = eye1InitialPosY1+eyeYSize
 
             eye2InitialPosX1 = eye1InitialPosX1+eyeXSize+spaceBetween
@@ -109,23 +109,42 @@ class Snake:
             eye2InitialPosY1 = eye1InitialPosY1
             eye2InitialPosY2 = eye2InitialPosY1+eyeYSize
         elif direction == RIGHT:
-            eye1InitialPosX1 = head.getPosX()+10
-            eye1InitialPosX2 = head.getPosY()+10+eyeYSize
-            eye1InitialPosY1 = head.getPosY()-eyeYMargin
+            eye1InitialPosX1 = head.getPosX()+eyeXSize+spaceBetween+eyeMargin
+            eye1InitialPosX2 = eye1InitialPosX1+eyeYSize
+            eye1InitialPosY1 = head.getPosY()+eyeMargin
             eye1InitialPosY2 = eye1InitialPosY1+eyeXSize
             
-            eye2InitialPosX1 = eye1InitialPosX1+eyeXSize+spaceBetween  #TODO CHANGE THIS!!!!
-            eye2InitialPosX2 = eye1InitialPosX1+eyeXSize+spaceBetween+eyeXSize 
-            eye2InitialPosY1 = eye1InitialPosY1
-            eye2InitialPosY2 = eye2InitialPosY1+eyeYSize
+            eye2InitialPosX1 = eye1InitialPosX1
+            eye2InitialPosX2 = eye1InitialPosX2
+            eye2InitialPosY1 = eye1InitialPosY2+spaceBetween
+            eye2InitialPosY2 = eye2InitialPosY1+eyeXSize
+        elif direction == LEFT:
+            eye1InitialPosX1 = head.getPosX()+eyeMargin
+            eye1InitialPosX2 = eye1InitialPosX1+eyeYSize
+            eye1InitialPosY1 = head.getPosY()+eyeMargin
+            eye1InitialPosY2 = eye1InitialPosY1+eyeXSize
             
+            eye2InitialPosX1 = eye1InitialPosX1
+            eye2InitialPosX2 = eye1InitialPosX2
+            eye2InitialPosY1 = eye1InitialPosY2+spaceBetween
+            eye2InitialPosY2 = eye2InitialPosY1+eyeXSize
+        elif direction == DOWN:
+            eye1InitialPosX1 = head.getPosX()+eyeMargin
+            eye1InitialPosX2 = eye1InitialPosX1+eyeXSize
+            eye1InitialPosY1 = head.getPosY()+eyeYSize+spaceBetween+eyeMargin
+            eye1InitialPosY2 = eye1InitialPosY1+eyeYSize
+
+            eye2InitialPosX1 = eye1InitialPosX2+spaceBetween
+            eye2InitialPosX2 = eye2InitialPosX1+eyeXSize
+            eye2InitialPosY1 = eye1InitialPosY1
+            eye2InitialPosY2 = eye1InitialPosY2
+            
+        eye1 = screen.genCanvas.create_rectangle(eye1InitialPosX1,eye1InitialPosY1,
+                                                 eye1InitialPosX2,eye1InitialPosY2,
+                                                 fill="blue")
 
         eye2 = screen.genCanvas.create_rectangle(eye2InitialPosX1,eye2InitialPosY1,
                                                  eye2InitialPosX2,eye2InitialPosY2,
-                                                 fill="blue")
-        
-        eye1 = screen.genCanvas.create_rectangle(eye1InitialPosX1,eye1InitialPosY1,
-                                                 eye1InitialPosX2,eye1InitialPosY2,
                                                  fill="blue")
         
         self.addEyesToCells(Cell(0,eye1InitialPosX1,eye1InitialPosY1,eye1))
@@ -185,23 +204,23 @@ class Snake:
         screen.genCanvas.delete(tail.getObject())
 
 
-    def move(self,key,screen):
-        if key.keysym == UP:
+    def move(self,command,screen):
+        if command == UP:
             if self.getDirection() != DOWN:
                 self.turn(UP,screen)
                 self.setDirection(UP)
             
-        elif key.keysym == DOWN:
+        elif command == DOWN:
             if self.getDirection() != UP:
                 self.turn(DOWN,screen)
                 self.setDirection(DOWN)
         
-        elif key.keysym == LEFT:
+        elif command == LEFT:
             if self.getDirection() != RIGHT:
                 self.turn(LEFT,screen)
                 self.setDirection(LEFT)
 
-        elif key.keysym == RIGHT:
+        elif command == RIGHT:
             if self.getDirection() != LEFT:
                 self.turn(RIGHT,screen)
                 self.setDirection(RIGHT)
