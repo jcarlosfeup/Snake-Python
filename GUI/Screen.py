@@ -11,13 +11,21 @@ from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
 from Logic.Snake import Snake
+from Logic.Snake import RIGHT, DOWN as directions
 from Logic.Cell import Cell
+
+#TODO REFACTOR THIS
+UP = "Up"
+DOWN = "Down"
+LEFT = "Left"
+RIGHT = "Right"
 
 class Screen:
     
     def __init__(self,window):
         self.window = window
         self.snakeObj = Snake()
+        self.foodObj = Cell()
         
         self.initConstants()
         self.createBoardUI()
@@ -116,7 +124,8 @@ class Screen:
         for i in range(self.snakeObj.getSize()):
             initialPosX  -= self.SNAKE_CELL_W
             initialPosX2 = initialPosX + self.SNAKE_CELL_W
-            renderSnakeCell(i+2,initialPosX,initialPosY,initialPosX2,self.SNAKE_INITIAL_POSY2) #1 for the snake head + 1 for loop begins at 0
+            #1 for the snake head + 1 for loop begins at 0
+            renderSnakeCell(i+2,initialPosX,initialPosY,initialPosX2,self.SNAKE_INITIAL_POSY2) 
 
 
     # returns tuple for random position to place food
@@ -125,10 +134,10 @@ class Screen:
         randPosX = -1
         randPosY = -1
 
-        while (randPosX % 10) > 0:
+        while (randPosX % 20) > 0:
             randPosX = r1.randint(0,self.CANVAS_WIDTH)
 
-        while (randPosY % 10) > 0:
+        while (randPosY % 20) > 0:
             randPosY = r1.randint(0,self.CANVAS_HEIGHT)
         
         return (randPosX,randPosY)
@@ -137,7 +146,9 @@ class Screen:
     # renders an apple in a random position
     def renderFood(self):
         posX,posY = self.randomPosition()
-        self.genCanvas.create_image(posX,posY,image=self.IMG_APPLE)
+        self.foodObj.setPosX(posX)
+        self.foodObj.setPosY(posY)
+        self.genCanvas.create_image(posX,posY,image=self.IMG_APPLE,anchor=tkinter.NW)
 
 
     def renderScore(self):
@@ -182,6 +193,20 @@ class Screen:
     def key_pressed(self,event):
         self.commands[event.keysym] = True
         self.resetOtherCommands(event.keysym)
+        
+    
+    def eatsFood(self):
+        return (self.snakeObj.getPosX() == self.foodObj.getPosX()) and (self.snakeObj.getPosY() == self.foodObj.getPosY())
+
+
+    def snakeCollision(self):
+        if self.snakeObj.getDirection() == directions.RIGHT:
+            #adds cell size
+            return (self.snakeObj.getPosX()+self.SNAKE_CELL_W <= 0) or (self.snakeObj.getPosX()+self.SNAKE_CELL_W >= self.CANVAS_WIDTH) or (self.snakeObj.getPosY() <= 0) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT)
+        elif self.snakeObj.getDirection() == directions.DOWN:
+            return (self.snakeObj.getPosX() <= 0) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH) or (self.snakeObj.getPosY()+self.SNAKE_CELL_H <= 0) or (self.snakeObj.getPosY()+self.SNAKE_CELL_H >= self.CANVAS_HEIGHT)
+        else:
+            return (self.snakeObj.getPosX() <= 0) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH) or (self.snakeObj.getPosY() <= 0) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT)
 
         
     def movement(self):
@@ -201,8 +226,16 @@ class Screen:
             self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
             cell.resetSteps()
         
+        if self.snakeCollision():
+            return -1
+        
+        if self.eatsFood():
+            return -1
+        
         # speed in milisecconds
         self.window.after(self.snakeObj.getSpeed()*100, self.movement)
+        
+        return 0
     
 
 if __name__ == '__main__':
@@ -221,7 +254,8 @@ if __name__ == '__main__':
     #binds keyboard keys to a procedure
     window.bind("<KeyPress>", sr.key_pressed)
 
-    sr.movement()
+    outcome = sr.movement()
     
-    window.mainloop()
+    if outcome != -1:
+        window.mainloop()
 

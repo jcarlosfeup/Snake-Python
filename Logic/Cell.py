@@ -8,7 +8,7 @@ Cell that compose the Snake
 
 class Cell:
 
-    def __init__(self, index,posX,posY,obj):
+    def __init__(self, index=0,posX=0,posY=0,obj=None):
         self.index = index
         self.posX = posX
         self.posY = posY

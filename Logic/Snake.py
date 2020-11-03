@@ -17,7 +17,7 @@ RIGHT = "Right"
 
 class Snake:
 
-    def __init__(self,initPosX=0,initPosY=0,size=3,speed=3):
+    def __init__(self,initPosX=0,initPosY=0,size=3,speed=2):
         self.size      = size
         self.speed     = speed
         self.posX      = initPosX
@@ -26,12 +26,6 @@ class Snake:
         self.direction = RIGHT
         self.Cells = []
 
-    def getPosX(self):
-        return self.posX
-
-    def getPosY(self):
-        return self.posY
-    
     def getSize(self):
         return self.size
     
@@ -53,7 +47,21 @@ class Snake:
     def getHead(self):
         for cell in self.Cells:
             if cell.getIndex() == 1:
-                return cell 
+                return cell
+
+    def getPosX(self):
+        if self.direction == RIGHT:
+            #adds cell size
+            return self.getHead().getPosX()+20
+        else:
+            return self.getHead().getPosX()
+
+    def getPosY(self):
+        if self.direction == DOWN:
+            #adds cell size
+            return self.getHead().getPosY()+20
+        else:
+            return self.getHead().getPosY()
     
     def setSpeed(self,newSpeed):
         self.speed = newSpeed
