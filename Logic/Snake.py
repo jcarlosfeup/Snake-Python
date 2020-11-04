@@ -50,18 +50,10 @@ class Snake:
                 return cell
 
     def getPosX(self):
-        if self.direction == RIGHT:
-            #adds cell size
-            return self.getHead().getPosX()+20
-        else:
-            return self.getHead().getPosX()
+        return self.getHead().getPosX()
 
     def getPosY(self):
-        if self.direction == DOWN:
-            #adds cell size
-            return self.getHead().getPosY()+20
-        else:
-            return self.getHead().getPosY()
+        return self.getHead().getPosY()
     
     def setSpeed(self,newSpeed):
         self.speed = newSpeed

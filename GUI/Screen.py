@@ -11,7 +11,6 @@ from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
 from Logic.Snake import Snake
-from Logic.Snake import RIGHT, DOWN as directions
 from Logic.Cell import Cell
 
 #TODO REFACTOR THIS
@@ -26,6 +25,8 @@ class Screen:
         self.window = window
         self.snakeObj = Snake()
         self.foodObj = Cell()
+        self.points = 0
+        self.scoreObj = None
         
         self.initConstants()
         self.createBoardUI()
@@ -55,9 +56,10 @@ class Screen:
 
         self.FOOD_W = self.SNAKE_CELL_W
         self.FOOD_H = self.SNAKE_CELL_H
+        self.FOOD_SCORE = 10
         
-        self.SCORE_MARGIN_VERTICAL = 48
-        self.SCORE_MARGIN_HORIZONTAL = 10
+        self.SCORE_MARGIN_VERTICAL = self.VERTICAL_MARGIN
+        self.SCORE_MARGIN_HORIZONTAL = 11
         
     def initObjects(self):
         self.snakeObj.setPosX(self.SNAKE_INITIAL_POSX2)
@@ -76,9 +78,13 @@ class Screen:
 
 
     def createCanvas(self):
-        #window general canvas
+        #game canvas
         self.genCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT,bg="green",highlightbackground="black")
         self.genCanvas.pack()
+
+        #bottom canvas
+        self.bottomCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.VERTICAL_MARGIN,highlightbackground="black")
+        self.bottomCanvas.pack()
 
 
     def createImages(self):
@@ -138,7 +144,7 @@ class Screen:
             randPosX = r1.randint(0,self.CANVAS_WIDTH)
 
         while (randPosY % 20) > 0:
-            randPosY = r1.randint(0,self.CANVAS_HEIGHT)
+            randPosY = r1.randint(0,(self.CANVAS_HEIGHT-self.SNAKE_CELL_H))
         
         return (randPosX,randPosY)
 
@@ -148,40 +154,32 @@ class Screen:
         posX,posY = self.randomPosition()
         self.foodObj.setPosX(posX)
         self.foodObj.setPosY(posY)
-        self.genCanvas.create_image(posX,posY,image=self.IMG_APPLE,anchor=tkinter.NW)
+        foodImg = self.genCanvas.create_image(posX,posY,image=self.IMG_APPLE,anchor=tkinter.NW)
+        self.foodObj.setObject(foodImg)
 
 
     def renderScore(self):
-        score = tkinter.Canvas(window, width=self.WINDOW_WIDTH/5, height=self.SNAKE_CELL_H*2,highlightthickness=0)
-        score.place(x=self.SCORE_MARGIN_HORIZONTAL,y=self.WINDOW_HEIGHT-self.SCORE_MARGIN_VERTICAL)
-        score.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Score:")
-
-        return score
+        self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Score:")
 
 
-    def renderScoreValue(self,canvas,points):
-        if len(points) == 1:   
-            canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+    def renderScoreValue(self,points):
+        #clears previous score
+        self.bottomCanvas.delete(self.scoreObj)
+        
+        if len(points) == 1:
+            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
         elif len(points) == 2:
-            canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
         else:
-            canvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
 
 
     def renderInstructions(self):
-        canvOffset = 30
         horzOffset = 65
-        
-        instr = tkinter.Canvas(window,width=self.WINDOW_WIDTH/3, height=self.SNAKE_CELL_H*2,highlightthickness=0)
-        instr.place(x=(self.WINDOW_WIDTH/3)+canvOffset,y=self.WINDOW_HEIGHT - self.SCORE_MARGIN_VERTICAL)
-        
-        instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Press ")
-        
-        #creates picture with key used to start the game
-        instr.create_image(self.SCORE_MARGIN_HORIZONTAL*5+horzOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=self.IMG_ENTER)
-        
-        #creates remaining statement
-        instr.create_text(self.SCORE_MARGIN_HORIZONTAL*5+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
+        self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Press ")
+        #creates image with key used to start the game
+        self.bottomCanvas.create_image(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+horzOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=self.IMG_ENTER)
+        self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
         
     
     def resetOtherCommands(self,command):
@@ -193,17 +191,31 @@ class Screen:
     def key_pressed(self,event):
         self.commands[event.keysym] = True
         self.resetOtherCommands(event.keysym)
-        
+      
     
-    def eatsFood(self):
+    def eatFood(self):
+        #deletes previous food
+        self.genCanvas.delete(self.foodObj.getObject())
+
+        #increments score
+        self.points = self.points + self.FOOD_SCORE
+        self.renderScoreValue(str(self.points))
+
+        #adds cell to snake
+        #TODO
+        
+        #render another food
+        self.renderFood()
+    
+    def collidesFood(self):
         return (self.snakeObj.getPosX() == self.foodObj.getPosX()) and (self.snakeObj.getPosY() == self.foodObj.getPosY())
 
 
     def snakeCollision(self):
-        if self.snakeObj.getDirection() == directions.RIGHT:
+        if self.snakeObj.getDirection() == RIGHT:
             #adds cell size
             return (self.snakeObj.getPosX()+self.SNAKE_CELL_W <= 0) or (self.snakeObj.getPosX()+self.SNAKE_CELL_W >= self.CANVAS_WIDTH) or (self.snakeObj.getPosY() <= 0) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT)
-        elif self.snakeObj.getDirection() == directions.DOWN:
+        elif self.snakeObj.getDirection() == DOWN:
             return (self.snakeObj.getPosX() <= 0) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH) or (self.snakeObj.getPosY()+self.SNAKE_CELL_H <= 0) or (self.snakeObj.getPosY()+self.SNAKE_CELL_H >= self.CANVAS_HEIGHT)
         else:
             return (self.snakeObj.getPosX() <= 0) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH) or (self.snakeObj.getPosY() <= 0) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT)
@@ -229,8 +241,8 @@ class Screen:
         if self.snakeCollision():
             return -1
         
-        if self.eatsFood():
-            return -1
+        if self.collidesFood():
+            self.eatFood()
         
         # speed in milisecconds
         self.window.after(self.snakeObj.getSpeed()*100, self.movement)
@@ -243,10 +255,8 @@ if __name__ == '__main__':
     window = tkinter.Tk()
     sr = Screen(window)
 
-    points = 0
-
-    scoreCanvas = sr.renderScore()
-    sr.renderScoreValue(scoreCanvas,str(points))
+    sr.renderScore()
+    sr.renderScoreValue(str(sr.points))
     
     # while not click on ENTER, renders ELSE hides
     sr.renderInstructions()
