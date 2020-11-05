@@ -48,6 +48,9 @@ class Snake:
         for cell in self.Cells:
             if cell.getIndex() == 1:
                 return cell
+            
+    def getTail(self):
+        return self.Cells[-1]
 
     def getPosX(self):
         return self.getHead().getPosX()
@@ -158,6 +161,32 @@ class Snake:
         
         newHead.setIndex(1)
         self.Cells.insert(0, newHead)
+        
+    
+    def growSnake(self,canvas):
+        currentTail = self.getTail()
+        posX = 0
+        posY = 0
+
+        if self.direction == UP:
+            posX = currentTail.getPosX()
+            posY = currentTail.getPosY() + STEP_SIZE
+        elif self.direction == DOWN:
+            posX = currentTail.getPosX()
+            posY = currentTail.getPosY() - STEP_SIZE
+        elif self.direction == LEFT:
+            posX = currentTail.getPosX() + STEP_SIZE
+            posY = currentTail.getPosY()
+        elif self.direction == RIGHT:
+            posX = currentTail.getPosX() - STEP_SIZE
+            posY = currentTail.getPosY()
+        
+        newObj = canvas.create_rectangle(posX,posY,
+                                        posX+STEP_SIZE,posY+STEP_SIZE,
+                                        fill="red",outline="blue")
+        
+        newTail = Cell(currentTail.getIndex()+1,posX,posY,newObj) 
+        self.addToCells(newTail)
 
 
     def popTail(self):
@@ -165,33 +194,49 @@ class Snake:
 
 
     def turn(self,newDir,screen):
-        #makes a copy of current head
         newHead = copy(self.getHead())
         
         newObject = screen.genCanvas.create_rectangle(newHead.getPosX(),newHead.getPosY(),
                                                           newHead.getPosX()+screen.SNAKE_CELL_W,newHead.getPosY()+screen.SNAKE_CELL_H,
                                                           fill="red",outline="blue")
-        
         newHead.setObject(newObject)
 
-        if (self.direction in (UP,RIGHT,LEFT) and newDir == UP):
-            print(newHead.getPosX())
-            print(newHead.getPosY())
-            newHead.setStepY(-STEP_SIZE)
-            newHead.setPosY(newHead.getPosY() - STEP_SIZE)
+        if newDir == UP:
+            if self.direction != DOWN:
+                newHead.setStepY(-STEP_SIZE)
+                newHead.setPosY(newHead.getPosY() - STEP_SIZE)
+                self.setDirection(UP)
+            else:
+                newHead.setStepY(+STEP_SIZE)
+                newHead.setPosY(newHead.getPosY() + STEP_SIZE)
         
-        elif(self.direction in (DOWN,RIGHT,LEFT) and newDir == DOWN):
-            newHead.setStepY(+STEP_SIZE)
-            newHead.setPosY(newHead.getPosY() + STEP_SIZE)
+        elif newDir == DOWN:
+            if self.direction != UP:
+                newHead.setStepY(+STEP_SIZE)
+                newHead.setPosY(newHead.getPosY() + STEP_SIZE)
+                self.setDirection(DOWN)
+            else:
+                newHead.setStepY(-STEP_SIZE)
+                newHead.setPosY(newHead.getPosY() - STEP_SIZE)
+                
+        elif newDir == LEFT:
+            if self.direction != RIGHT:
+                newHead.setStepX(-STEP_SIZE)
+                newHead.setPosX(newHead.getPosX() - STEP_SIZE)
+                self.setDirection(LEFT)
+            else:
+                newHead.setStepX(+STEP_SIZE)
+                newHead.setPosX(newHead.getPosX() + STEP_SIZE)
+        
+        elif newDir == RIGHT:
+            if self.direction != LEFT:
+                newHead.setStepX(+STEP_SIZE)
+                newHead.setPosX(newHead.getPosX() + STEP_SIZE)
+                self.setDirection(RIGHT)
+            else:
+                newHead.setStepX(-STEP_SIZE)
+                newHead.setPosX(newHead.getPosX() - STEP_SIZE)
 
-        elif(self.direction in (LEFT,UP,DOWN) and newDir == LEFT):
-            newHead.setStepX(-STEP_SIZE)
-            newHead.setPosX(newHead.getPosX() - STEP_SIZE)
-        
-        elif(self.direction in (RIGHT,UP,DOWN) and newDir == RIGHT):
-            newHead.setStepX(+STEP_SIZE)
-            newHead.setPosX(newHead.getPosX() + STEP_SIZE)
-        
         #sets new snake head in the first position
         self.replaceHead(newHead)
         
@@ -206,22 +251,10 @@ class Snake:
 
     def move(self,command,screen):
         if command == UP:
-            if self.getDirection() != DOWN:
-                self.turn(UP,screen)
-                self.setDirection(UP)
-            
+            self.turn(UP,screen)
         elif command == DOWN:
-            if self.getDirection() != UP:
-                self.turn(DOWN,screen)
-                self.setDirection(DOWN)
-        
+            self.turn(DOWN,screen)
         elif command == LEFT:
-            if self.getDirection() != RIGHT:
-                self.turn(LEFT,screen)
-                self.setDirection(LEFT)
-
+            self.turn(LEFT,screen)
         elif command == RIGHT:
-            if self.getDirection() != LEFT:
-                self.turn(RIGHT,screen)
-                self.setDirection(RIGHT)
-            
+            self.turn(RIGHT,screen)
