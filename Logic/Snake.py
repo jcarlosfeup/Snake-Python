@@ -22,7 +22,6 @@ class Snake:
         self.speed     = speed
         self.posX      = initPosX
         self.posY      = initPosY
-        #right direction is the default
         self.direction = RIGHT
         self.Cells = []
 
@@ -43,12 +42,12 @@ class Snake:
     
     def getCells(self):
         return self.Cells
-    
+
     def getHead(self):
         for cell in self.Cells:
             if cell.getIndex() == 1:
                 return cell
-            
+
     def getTail(self):
         return self.Cells[-1]
 
@@ -82,6 +81,18 @@ class Snake:
     def addEyesToCells(self,newCell):
         self.Cells.insert(0,newCell)
         
+    def cellCollision(self,cell1,cell2):
+        return (cell1.getPosX() == cell2.getPosX()) and (cell1.getPosY() == cell2.getPosY())
+        
+    def snakeBodyCollision(self):
+        head = self.getHead()
+        for cell in self.Cells:
+            if cell.getIndex() > 1:
+                if self.cellCollision(head,cell):
+                    return True
+        return False
+
+
     def removesSnakeEyes(self,screen):
         eyes = []
         for cell in self.Cells:
@@ -195,6 +206,7 @@ class Snake:
 
     def turn(self,newDir,screen):
         newHead = copy(self.getHead())
+        eyesDirection = newDir
         
         newObject = screen.genCanvas.create_rectangle(newHead.getPosX(),newHead.getPosY(),
                                                           newHead.getPosX()+screen.SNAKE_CELL_W,newHead.getPosY()+screen.SNAKE_CELL_H,
@@ -209,6 +221,7 @@ class Snake:
             else:
                 newHead.setStepY(+STEP_SIZE)
                 newHead.setPosY(newHead.getPosY() + STEP_SIZE)
+                eyesDirection = DOWN
         
         elif newDir == DOWN:
             if self.direction != UP:
@@ -218,6 +231,7 @@ class Snake:
             else:
                 newHead.setStepY(-STEP_SIZE)
                 newHead.setPosY(newHead.getPosY() - STEP_SIZE)
+                eyesDirection = UP
                 
         elif newDir == LEFT:
             if self.direction != RIGHT:
@@ -227,6 +241,7 @@ class Snake:
             else:
                 newHead.setStepX(+STEP_SIZE)
                 newHead.setPosX(newHead.getPosX() + STEP_SIZE)
+                eyesDirection = RIGHT
         
         elif newDir == RIGHT:
             if self.direction != LEFT:
@@ -236,13 +251,14 @@ class Snake:
             else:
                 newHead.setStepX(-STEP_SIZE)
                 newHead.setPosX(newHead.getPosX() - STEP_SIZE)
+                eyesDirection = LEFT
 
         #sets new snake head in the first position
         self.replaceHead(newHead)
         
         #removes previous snake eyes and creates new ones
         self.removesSnakeEyes(screen)
-        self.createSnakeEyes(screen,newDir,newHead)
+        self.createSnakeEyes(screen,eyesDirection,newHead)
 
         #removes tail from canvas and queue
         tail = self.popTail()

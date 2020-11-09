@@ -177,13 +177,25 @@ class Screen:
             self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
 
 
-    def renderInstructions(self):
-        horzOffset = 65
+    def renderInstructions(self,mode="NORMAL"):
+        imgOffset = 65
+        horzOffset = 145
+        color = "black"
+        if mode == "NORMAL":
+            textBegin = "Press "
+            textEnd = "to start"
+        else:
+            textBegin = "You lost! Press "
+            textEnd = "to start again"
+            imgOffset = 130
+            horzOffset = 250
+            color = "red"
+
         instrObjList = []
-        instr1 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Press ")
-        #creates image with key used to start the game
-        instr2 = self.bottomCanvas.create_image(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+horzOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=self.IMG_KEYS)
-        instr3 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+(horzOffset*2.3),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="to start!")
+        instr1 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=textBegin,fill=color)
+        instr2 = self.bottomCanvas.create_image(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+imgOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=self.IMG_KEYS)
+        instr3 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+horzOffset,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=textEnd,fill=color)
+        
         #stores text and image in a list of objects to delete afterwards
         instrObjList.append(instr1)
         instrObjList.append(instr2)
@@ -258,7 +270,7 @@ class Screen:
             self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
             cell.resetSteps()
             
-        if self.snakeCollision():
+        if self.snakeCollision() or self.snakeObj.snakeBodyCollision():
             self.moving = False
             return -1
         
@@ -279,7 +291,7 @@ if __name__ == '__main__':
 
     sr.renderScore()
     sr.renderScoreValue(str(sr.points))
-    sr.renderInstructions()
+    sr.renderInstructions("NORMAL")
     
     #binds keyboard keys to a procedure
     window.bind("<KeyPress>", sr.key_pressed)
