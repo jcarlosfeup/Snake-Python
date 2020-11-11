@@ -7,11 +7,14 @@ GUI logic
 '''
 
 import tkinter
+import pygame
+#import winsound as sound
 from random import Random
 from PIL import Image, ImageTk
 from Logic.Board import Board
 from Logic.Snake import Snake
 from Logic.Cell import Cell
+import Logic.Snake as Snk
 
 #TODO REFACTOR THIS
 UP = "Up"
@@ -67,6 +70,10 @@ class Screen:
         
         self.NORMAL_TEXT = "NORMAL"
         self.END_TEXT = "END"
+        
+        self.COLLISION_SOUND = "../Resources/snakeCollision.wav"
+        self.MOVE_SOUND = "../Resources/snakeMovement.wav"
+        self.EAT_SOUND = "../Resources/snakeEat.wav"
         
     def initObjects(self):
         self.snakeObj.setPosX(self.SNAKE_INITIAL_POSX2)
@@ -261,10 +268,16 @@ class Screen:
         else:
             return (self.snakeObj.getPosX() <= -1) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH+1) or (self.snakeObj.getPosY() <= -1) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT+1)
 
+
+    def playSound(self,soundDir,mode=0):
+        pygame.mixer.music.load(soundDir)
+        pygame.mixer.music.play(mode)
+
         
     def play(self):
+        SONG_END = pygame.USEREVENT + 1
         if self.playing:
-            if self.commands[UP]:
+            if self.commands[Snk.UP]:
                 self.snakeObj.move(UP,self)
                 self.moving = True
             elif self.commands[DOWN]:
@@ -276,21 +289,37 @@ class Screen:
             elif self.commands[LEFT]:
                 self.snakeObj.move(LEFT,self)
                 self.moving = True
-            
-            if sr.moving:
+
+            if self.moving:
                 self.clearsInstructions(self.instrObj)
+                #pygame.mixer.music.set_endevent(SONG_END)
+                for event in pygame.event.get():
+                    if event.type == SONG_END:
+                        self.playSound(self.MOVE_SOUND,-1)
             
             for cell in self.snakeObj.getCells():
                 self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
                 cell.resetSteps()
                 
             if self.snakeCollision() or self.snakeObj.snakeBodyCollision():
+                pygame.mixer.music.stop()
+                self.playSound(self.COLLISION_SOUND)
                 self.moving = False
                 self.renderInstructions(self.END_TEXT)
                 self.playing = False
             
             if self.collidesFood():
+                pygame.mixer.music.stop()
+                pygame.mixer.music.set_endevent(SONG_END)
+                pygame.mixer.music.load(self.EAT_SOUND)
+                pygame.mixer.music.play()
+
+                
+                self.moving = False
+                #self.playSound(self.EAT_SOUND)
                 self.eatFood()
+                self.moving = True
+
 
             # speed in millisecconds
             self.window.after(self.snakeObj.getSpeed()*100, self.play)
@@ -311,6 +340,7 @@ class Screen:
 
 if __name__ == '__main__':
     window = tkinter.Tk()
+    pygame.init()
     
     sr = Screen(window)
     sr.renderScore()
