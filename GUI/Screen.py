@@ -19,6 +19,7 @@ DOWN = "Down"
 LEFT = "Left"
 RIGHT = "Right"
 
+
 class Screen:
     
     def __init__(self,window):
@@ -27,7 +28,7 @@ class Screen:
         self.foodObj = Cell()
         self.points = 0
         self.moving = False
-        self.instructions = True
+        self.playing = True
         self.scoreObj = None
         self.instrObj = None
         
@@ -64,6 +65,9 @@ class Screen:
         self.SCORE_MARGIN_VERTICAL = self.VERTICAL_MARGIN
         self.SCORE_MARGIN_HORIZONTAL = 11
         
+        self.NORMAL_TEXT = "NORMAL"
+        self.END_TEXT = "END"
+        
     def initObjects(self):
         self.snakeObj.setPosX(self.SNAKE_INITIAL_POSX2)
         self.snakeObj.setPosY(self.SNAKE_INITIAL_POSY2)
@@ -94,8 +98,15 @@ class Screen:
         apple = Image.open("../Resources/apple.png")
         apple = apple.resize((self.FOOD_H, self.FOOD_W), Image.ANTIALIAS)
 
-        self.IMG_APPLE = ImageTk.PhotoImage(apple)
-        self.IMG_KEYS = ImageTk.PhotoImage(Image.open("../Resources/keys.png"))
+        self.IMG_APPLE  = ImageTk.PhotoImage(apple)
+        self.IMG_KEYS   = ImageTk.PhotoImage(Image.open("../Resources/keys.png"))
+        self.IMG_RETURN = ImageTk.PhotoImage(Image.open("../Resources/return.png"))
+
+
+    def clearsSnake(self):
+        for cell in self.snakeObj.getCells():
+            self.genCanvas.delete(cell.getObject())
+        self.snakeObj.setCells([])
 
 
     def renderSnake(self):
@@ -177,23 +188,25 @@ class Screen:
             self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
 
 
-    def renderInstructions(self,mode="NORMAL"):
-        imgOffset = 65
-        horzOffset = 145
-        color = "black"
-        if mode == "NORMAL":
+    def renderInstructions(self,mode):
+        if mode == self.NORMAL_TEXT:
             textBegin = "Press "
             textEnd = "to start"
+            imgOffset = 65
+            horzOffset = 145
+            color = "black"
+            img = self.IMG_KEYS
         else:
             textBegin = "You lost! Press "
             textEnd = "to start again"
             imgOffset = 130
             horzOffset = 250
             color = "red"
+            img = self.IMG_RETURN
 
         instrObjList = []
         instr1 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=textBegin,fill=color)
-        instr2 = self.bottomCanvas.create_image(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+imgOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=self.IMG_KEYS)
+        instr2 = self.bottomCanvas.create_image(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+imgOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=img)
         instr3 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+horzOffset,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=textEnd,fill=color)
         
         #stores text and image in a list of objects to delete afterwards
@@ -206,7 +219,13 @@ class Screen:
     def clearsInstructions(self,objList):
         for obj in objList:
             self.bottomCanvas.delete(obj)
+        self.instrObj = []
 
+    
+    def resetAllCommands(self):
+        for k in self.commands:
+            self.commands[k] = False
+        
 
     def resetOtherCommands(self,command):
         for k in self.commands:
@@ -217,20 +236,16 @@ class Screen:
     def key_pressed(self,event):
         self.commands[event.keysym] = True
         self.resetOtherCommands(event.keysym)
-      
+
     
     def eatFood(self):
-        #deletes previous food
         self.genCanvas.delete(self.foodObj.getObject())
 
-        #increments score
         self.points = self.points + self.FOOD_SCORE
         self.renderScoreValue(str(self.points))
 
-        #grows snake
         self.snakeObj.growSnake(self.genCanvas)
         
-        #render another food
         self.renderFood()
     
     def collidesFood(self):
@@ -247,57 +262,65 @@ class Screen:
             return (self.snakeObj.getPosX() <= -1) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH+1) or (self.snakeObj.getPosY() <= -1) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT+1)
 
         
-    def movement(self):
-        if self.commands[UP]:
-            self.snakeObj.move(UP,self)
-            self.moving = True
-        elif self.commands[DOWN]:
-            self.snakeObj.move(DOWN,self)
-            self.moving = True
-        elif self.commands[RIGHT]:
-            self.snakeObj.move(RIGHT,self)
-            self.moving = True
-        elif self.commands[LEFT]:
-            self.snakeObj.move(LEFT,self)
-            self.moving = True
-        
-        if sr.moving and self.instructions:
-            self.clearsInstructions(self.instrObj)
-            self.instructions = False
-        
-        for cell in self.snakeObj.getCells():
-            #print(cell.getIndex())
-            self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
-            cell.resetSteps()
+    def play(self):
+        if self.playing:
+            if self.commands[UP]:
+                self.snakeObj.move(UP,self)
+                self.moving = True
+            elif self.commands[DOWN]:
+                self.snakeObj.move(DOWN,self)
+                self.moving = True
+            elif self.commands[RIGHT]:
+                self.snakeObj.move(RIGHT,self)
+                self.moving = True
+            elif self.commands[LEFT]:
+                self.snakeObj.move(LEFT,self)
+                self.moving = True
             
-        if self.snakeCollision() or self.snakeObj.snakeBodyCollision():
-            self.moving = False
-            return -1
-        
-        if self.collidesFood():
-            self.eatFood()
-        
-        # speed in milisecconds
-        self.window.after(self.snakeObj.getSpeed()*100, self.movement)
-        
-        return 0
-    
+            if sr.moving:
+                self.clearsInstructions(self.instrObj)
+            
+            for cell in self.snakeObj.getCells():
+                self.genCanvas.move(cell.obj,cell.getStepX(),cell.getStepY())
+                cell.resetSteps()
+                
+            if self.snakeCollision() or self.snakeObj.snakeBodyCollision():
+                self.moving = False
+                self.renderInstructions(self.END_TEXT)
+                self.playing = False
+            
+            if self.collidesFood():
+                self.eatFood()
+
+            # speed in millisecconds
+            self.window.after(self.snakeObj.getSpeed()*100, self.play)
+            
+    def playAgain(self,event):
+        if event.keysym == "Return":
+            self.points = 0
+            self.renderScoreValue(str(self.points))
+            self.clearsInstructions(self.instrObj)
+            self.clearsSnake()
+            self.resetAllCommands()
+            self.renderSnake()
+            self.snakeObj.setDirection(RIGHT)
+            self.renderInstructions(self.NORMAL_TEXT)
+            self.playing = True
+            self.play()
+
 
 if __name__ == '__main__':
     window = tkinter.Tk()
+    
     sr = Screen(window)
-
-    outcome = -1
-
     sr.renderScore()
     sr.renderScoreValue(str(sr.points))
-    sr.renderInstructions("NORMAL")
+    sr.renderInstructions(sr.NORMAL_TEXT)
     
-    #binds keyboard keys to a procedure
     window.bind("<KeyPress>", sr.key_pressed)
+    window.bind("<Return>", sr.playAgain)
+    
+    sr.play()
 
-    outcome = sr.movement()
-
-    if outcome != -1:
-        window.mainloop()
+    window.mainloop()
 
