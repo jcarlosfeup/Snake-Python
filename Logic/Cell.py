@@ -1,7 +1,7 @@
 '''
 Created on 22/10/2020
 
-Cell that compose the Snake
+Cell that composes the Snake
 
 @author: Carlos Portela
 '''

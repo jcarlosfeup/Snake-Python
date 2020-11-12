@@ -8,12 +8,11 @@ Snake controlled and used to play the game
 from copy import copy
 from Logic.Cell import Cell
 
-STEP_SIZE = 20
-
 UP = "Up"
 DOWN = "Down"
 LEFT = "Left"
 RIGHT = "Right"
+STEP_SIZE = 20
 
 class Snake:
 
@@ -96,22 +95,20 @@ class Snake:
     def removesSnakeEyes(self,screen):
         eyes = []
         for cell in self.Cells:
-            if cell.getIndex() == 0:  #its an eye
+            if cell.getIndex() == 0:
                 screen.genCanvas.delete(cell.getObject())
                 eyes.append(cell)
-                
-        #removes eyes from snake object list
+
         self.Cells.remove(eyes[0])
         self.Cells.remove(eyes[1])
 
 
     def createSnakeEyes(self,screen,direction,head):
         eyeMargin = 2
-        eyeXSize = 7
-        eyeYSize = 6
+        eyeXSize  = 7
+        eyeYSize  = 6
         spaceBetween = 2
-        
-        #creates rectangles representing the eyes
+
         if direction == UP:
             eye1InitialPosX1 = head.getPosX()+eyeMargin
             eye1InitialPosX2 = eye1InitialPosX1+eyeXSize
@@ -152,7 +149,7 @@ class Snake:
             eye2InitialPosX2 = eye2InitialPosX1+eyeXSize
             eye2InitialPosY1 = eye1InitialPosY1
             eye2InitialPosY2 = eye1InitialPosY2
-            
+
         eye1 = screen.genCanvas.create_rectangle(eye1InitialPosX1,eye1InitialPosY1,
                                                  eye1InitialPosX2,eye1InitialPosY2,
                                                  fill="blue")
@@ -166,37 +163,35 @@ class Snake:
 
 
     def replaceHead(self,newHead):
-        #updates cells indexes
         for i in range(len(self.Cells)):
             self.Cells[i].incrementIndex()
-        
+
         newHead.setIndex(1)
-        self.Cells.insert(0, newHead)
+        self.Cells.insert(0,newHead)
         
     
     def growSnake(self,canvas):
         currentTail = self.getTail()
-        posX = 0
-        posY = 0
+        posX,posY = 0,0
 
         if self.direction == UP:
             posX = currentTail.getPosX()
-            posY = currentTail.getPosY() + STEP_SIZE
+            posY = currentTail.getPosY() - STEP_SIZE
         elif self.direction == DOWN:
             posX = currentTail.getPosX()
-            posY = currentTail.getPosY() - STEP_SIZE
+            posY = currentTail.getPosY() + STEP_SIZE
         elif self.direction == LEFT:
-            posX = currentTail.getPosX() + STEP_SIZE
+            posX = currentTail.getPosX() - STEP_SIZE
             posY = currentTail.getPosY()
         elif self.direction == RIGHT:
-            posX = currentTail.getPosX() - STEP_SIZE
+            posX = currentTail.getPosX() + STEP_SIZE
             posY = currentTail.getPosY()
         
         newObj = canvas.create_rectangle(posX,posY,
                                         posX+STEP_SIZE,posY+STEP_SIZE,
                                         fill="red",outline="blue")
         
-        newTail = Cell(currentTail.getIndex()+1,posX,posY,newObj) 
+        newTail = Cell(currentTail.getIndex()+1,posX,posY,newObj)
         self.addToCells(newTail)
 
 
@@ -253,14 +248,10 @@ class Snake:
                 newHead.setPosX(newHead.getPosX() - STEP_SIZE)
                 eyesDirection = LEFT
 
-        #sets new snake head in the first position
         self.replaceHead(newHead)
-        
-        #removes previous snake eyes and creates new ones
         self.removesSnakeEyes(screen)
         self.createSnakeEyes(screen,eyesDirection,newHead)
 
-        #removes tail from canvas and queue
         tail = self.popTail()
         screen.genCanvas.delete(tail.getObject())
 
