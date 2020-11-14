@@ -11,7 +11,7 @@ import pygame
 import Logic.Snake as SnakeConst
 from random import Random
 from PIL import Image, ImageTk
-from Logic.Snake import Snake
+from Logic.Snake import Snake, BLACK_COLOR
 from Logic.Cell import Cell
 
 class Screen:
@@ -63,9 +63,15 @@ class Screen:
         self.NORMAL_TEXT = "NORMAL"
         self.END_TEXT = "END"
         
-        self.COLLISION_SOUND = "../Resources/snakeCollision.wav"
-        self.MOVE_SOUND = "../Resources/snakeMovement.wav"
-        self.EAT_SOUND = "../Resources/snakeEat.wav"
+        RESOURCES_FOLDER = "../Resources/"
+        self.COLLISION_SOUND = RESOURCES_FOLDER + "snakeCollision.wav"
+        self.MOVE_SOUND = RESOURCES_FOLDER + "snakeMovement.wav"
+        self.EAT_SOUND  = RESOURCES_FOLDER + "snakeEat.wav"
+        self.APPLE_DIR  = RESOURCES_FOLDER + "apple.png"
+        self.KEYS_DIR   = RESOURCES_FOLDER + "keys.png"
+        self.RETURN_DIR = RESOURCES_FOLDER + "return.png"
+        
+        self.FONT_TEXT = "Times 25 bold"
 
 
     def initObjects(self):
@@ -80,57 +86,52 @@ class Screen:
 
 
     def createCanvas(self):
-        self.genCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT,bg="green",highlightbackground="black")
+        self.genCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.CANVAS_HEIGHT,bg=SnakeConst.GREEN_COLOR,highlightbackground=SnakeConst.BLACK_COLOR)
         self.genCanvas.pack()
 
-        self.bottomCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.VERTICAL_MARGIN,highlightbackground="black")
+        self.bottomCanvas = tkinter.Canvas(window, width=self.CANVAS_WIDTH, height=self.VERTICAL_MARGIN,highlightbackground=BLACK_COLOR)
         self.bottomCanvas.pack()
 
 
     def createImages(self):
-        apple = Image.open("../Resources/apple.png")
+        apple = Image.open(self.APPLE_DIR)
         apple = apple.resize((self.FOOD_H, self.FOOD_W), Image.ANTIALIAS)
 
         self.IMG_APPLE  = ImageTk.PhotoImage(apple)
-        self.IMG_KEYS   = ImageTk.PhotoImage(Image.open("../Resources/keys.png"))
-        self.IMG_RETURN = ImageTk.PhotoImage(Image.open("../Resources/return.png"))
+        self.IMG_KEYS   = ImageTk.PhotoImage(Image.open(self.KEYS_DIR))
+        self.IMG_RETURN = ImageTk.PhotoImage(Image.open(self.RETURN_DIR))
 
 
     def clearsSnake(self):
         for cell in self.snakeObj.getCells():
             self.genCanvas.delete(cell.getObject())
         self.snakeObj.setCells([])
+        
+    
+    def createRectangleOnCanvas(self,posX1,posY1,posX2,posY2,eyes=False):
+        if eyes:
+            return self.genCanvas.create_rectangle(posX1,posY1,posX2,posY2,fill=SnakeConst.BLUE_COLOR)
+        else:
+            return self.genCanvas.create_rectangle(posX1,posY1,posX2,posY2,fill=SnakeConst.RED_COLOR,outline=SnakeConst.BLUE_COLOR)
 
 
     def renderSnake(self):
+        def renderSnakeCell(index,posX1,posY1,posX2,posY2,eyes=False):
+            cell = self.createRectangleOnCanvas(posX1,posY1,posX2,posY2,eyes)
+            self.snakeObj.addToCells(Cell(index,posX1,posY1,cell))
 
-        def renderSnakeCell(indice,posX1,posY1,posX2,posY2):
-            cell = self.genCanvas.create_rectangle(posX1,posY1,posX2,posY2, fill="red",outline="blue")
-            self.snakeObj.addToCells(Cell(indice,posX1,posY1,cell))
+        initialPosX = (self.WINDOW_WIDTH)/2 
+        initialPosY = (self.WINDOW_HEIGHT)/2
+        
+        #head cell
+        renderSnakeCell(1,initialPosX,initialPosY,self.SNAKE_INITIAL_POSX2,self.SNAKE_INITIAL_POSY2)
 
-        initialPosX = (self.WINDOW_WIDTH)/2  # 500
-        initialPosY = (self.WINDOW_HEIGHT)/2 # 400
-        eyeYMargin  = 2
-
-        #creates rectangle for the head
-        head = self.genCanvas.create_rectangle(initialPosX,initialPosY,
-                                               self.SNAKE_INITIAL_POSX2,
-                                               self.SNAKE_INITIAL_POSY2,
-                                               fill="red",outline="blue")
-        eyeInitialPosX  = initialPosX+10  #510
-        eye1InitialPosY = initialPosY+eyeYMargin  #402
+        eyeInitialPosX  = initialPosX+10
+        eye1InitialPosY = initialPosY+SnakeConst.EYE_MARGIN 
         eye2InitialPosY = initialPosY+12
 
-        eye1 = self.genCanvas.create_rectangle(eyeInitialPosX,eye1InitialPosY,
-                                               initialPosX+self.SNAKE_CELL_W-3,initialPosY+8,
-                                               fill="blue")
-        eye2 = self.genCanvas.create_rectangle(eyeInitialPosX,eye2InitialPosY,
-                                               initialPosX+self.SNAKE_CELL_W-3,initialPosY+self.SNAKE_CELL_H-eyeYMargin,
-                                               fill="blue")
-
-        self.snakeObj.addToCells(Cell(1,initialPosX,initialPosY,head))
-        self.snakeObj.addToCells(Cell(0,eyeInitialPosX,eye1InitialPosY,eye1))
-        self.snakeObj.addToCells(Cell(0,eyeInitialPosX,eye2InitialPosY,eye2))
+        renderSnakeCell(0,eyeInitialPosX,eye1InitialPosY,initialPosX+self.SNAKE_CELL_W-3,initialPosY+8,eyes=True)
+        renderSnakeCell(0,eyeInitialPosX,eye2InitialPosY,initialPosX+self.SNAKE_CELL_W-3,initialPosY+self.SNAKE_CELL_H-SnakeConst.EYE_MARGIN,eyes=True)
 
         for i in range(self.snakeObj.getSize()):
             initialPosX  -= self.SNAKE_CELL_W
@@ -152,7 +153,6 @@ class Screen:
         return (randPosX,randPosY)
 
 
-    # renders an apple in a random position
     def renderFood(self):
         posX,posY = self.randomPosition()
         self.foodObj.setPosX(posX)
@@ -162,19 +162,18 @@ class Screen:
 
 
     def renderScore(self):
-        self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text="Score:")
+        self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*5,self.SCORE_MARGIN_VERTICAL/2,font=self.FONT_TEXT,text="Score:")
 
 
     def renderScoreValue(self,points):
-        #clears previous score
         self.bottomCanvas.delete(self.scoreObj)
         
         if len(points) == 1:
-            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11,self.SCORE_MARGIN_VERTICAL/2,font=self.FONT_TEXT,text=points)
         elif len(points) == 2:
-            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+5,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+5,self.SCORE_MARGIN_VERTICAL/2,font=self.FONT_TEXT,text=points)
         else:
-            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=points)
+            self.scoreObj = self.bottomCanvas.create_text(self.SCORE_MARGIN_HORIZONTAL*11+10,self.SCORE_MARGIN_VERTICAL/2,font=self.FONT_TEXT,text=points)
 
 
     def renderInstructions(self,mode):
@@ -183,22 +182,21 @@ class Screen:
             textEnd = "to start"
             imgOffset = 65
             horzOffset = 145
-            color = "black"
+            color = SnakeConst.BLACK_COLOR
             img = self.IMG_KEYS
         else:
             textBegin = "You lost! Press "
             textEnd = "to start again"
             imgOffset = 130
             horzOffset = 250
-            color = "red"
+            color = SnakeConst.RED_COLOR
             img = self.IMG_RETURN
 
         instrObjList = []
-        instr1 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8),self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=textBegin,fill=color)
+        instr1 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8),self.SCORE_MARGIN_VERTICAL/2,font=self.FONT_TEXT,text=textBegin,fill=color)
         instr2 = self.bottomCanvas.create_image(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+imgOffset,(self.SCORE_MARGIN_VERTICAL/2)-3, image=img)
-        instr3 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+horzOffset,self.SCORE_MARGIN_VERTICAL/2,font="Times 25 bold",text=textEnd,fill=color)
+        instr3 = self.bottomCanvas.create_text(self.WINDOW_WIDTH/2-(self.SCORE_MARGIN_HORIZONTAL*8)+horzOffset,self.SCORE_MARGIN_VERTICAL/2,font=self.FONT_TEXT,text=textEnd,fill=color)
         
-        #stores text and image in a list of objects to delete afterwards
         instrObjList.append(instr1)
         instrObjList.append(instr2)
         instrObjList.append(instr3)
@@ -214,7 +212,7 @@ class Screen:
     def resetAllCommands(self):
         for k in self.commands:
             self.commands[k] = False
-        
+
 
     def resetOtherCommands(self,command):
         for k in self.commands:
@@ -233,7 +231,7 @@ class Screen:
         self.points = self.points + self.FOOD_SCORE
         self.renderScoreValue(str(self.points))
 
-        self.snakeObj.growSnake(self.genCanvas)
+        self.snakeObj.growSnake(self)
         
         self.renderFood()
     
@@ -243,7 +241,6 @@ class Screen:
 
     def snakeCollision(self):
         if self.snakeObj.getDirection() == SnakeConst.RIGHT:
-            #adds cell size
             return (self.snakeObj.getPosX()+self.SNAKE_CELL_W <= -1) or (self.snakeObj.getPosX()+self.SNAKE_CELL_W >= self.CANVAS_WIDTH+1) or (self.snakeObj.getPosY() <= -1) or (self.snakeObj.getPosY() >= self.CANVAS_HEIGHT+1)
         elif self.snakeObj.getDirection() == SnakeConst.DOWN:
             return (self.snakeObj.getPosX() <= -1) or (self.snakeObj.getPosX() >= self.CANVAS_WIDTH+1) or (self.snakeObj.getPosY()+self.SNAKE_CELL_H <= -1) or (self.snakeObj.getPosY()+self.SNAKE_CELL_H >= self.CANVAS_HEIGHT+1)
@@ -291,8 +288,9 @@ class Screen:
                 self.eatFood()
 
             # speed in millisecconds
-            self.window.after(self.snakeObj.getSpeed()*100, self.play)
-            
+            self.window.after(1000-self.snakeObj.getSpeed()*100, self.play)
+
+
     def playAgain(self,event):
         if event.keysym == "Return":
             self.points = 0
